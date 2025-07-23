@@ -866,6 +866,7 @@
             const loadingSpinner = document.getElementById('loadingSpinner');
             const saveStatus = document.getElementById('saveStatus');
             const errorMessage = document.getElementById('errorMessage');
+            const resultBox = document.getElementById('result'); // Get result box element
 
             saveStatus.classList.add('hidden');
             errorMessage.classList.add('hidden');
@@ -941,28 +942,28 @@
                 saveStatus.classList.remove('hidden');
                 console.log("Document written with ID: ", docRef.id);
 
-                // --- 추가된 초기화 로직 시작 ---
+                // 결과 박스는 저장 성공 시 보여주도록 합니다.
+                resultBox.classList.remove('hidden');
+                resultBox.scrollIntoView({ behavior: 'smooth' });
+
+                // --- 초기화 로직 시작 ---
+                console.log("Attempting to reset form and remove question-answered classes.");
                 form.reset(); // 폼의 모든 입력 필드 초기화 (라디오 버튼 포함)
                 document.querySelectorAll('.question-card').forEach(card => {
                     card.classList.remove('question-answered'); // 배경색 초기화
                 });
-                document.getElementById('result').classList.add('hidden'); // 결과 박스 숨기기
-                // --- 추가된 초기화 로직 끝 ---
+                // --- 초기화 로직 끝 ---
 
             } catch (e) {
                 errorMessage.textContent = `저장 중 오류 발생: ${e.message}`;
                 errorMessage.classList.remove('hidden');
+                resultBox.classList.remove('hidden'); // 에러 발생 시에도 결과 박스는 보여줍니다.
+                resultBox.scrollIntoView({ behavior: 'smooth' });
                 console.error("Error adding document to Firestore: ", e);
             } finally {
                 buttonText.textContent = '결과 보기 및 저장하기';
                 loadingSpinner.classList.add('hidden');
                 submitButton.disabled = false;
-
-                // 결과 박스는 성공 시에만 보여주고, 초기화 시 숨기므로 이 부분은 조건부로 변경
-                // if (saveStatus.classList.contains('hidden')) { // 에러가 없으면 결과 박스 보여주기
-                //     document.getElementById('result').classList.remove('hidden');
-                //     document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
-                // }
                 console.log("Form submission process finished.");
             }
         });
