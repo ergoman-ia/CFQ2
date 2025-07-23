@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 대시보드</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            color: #1a202c;
+            margin-bottom: 20px;
+        }
+        .auth-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #cbd5e0;
+            border-radius: 10px;
+            background-color: #e2e8f0;
+        }
+        .auth-section input {
+            padding: 10px 15px;
+            border: 1px solid #a0aec0;
+            border-radius: 8px;
+            margin-right: 10px;
+            width: 200px;
+        }
+        .auth-section button {
+            background-color: #4c51bf;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .auth-section button:hover {
+            background-color: #322f87;
+        }
+        .dashboard-content {
+            display: none; /* Hidden by default */
+        }
+        .dashboard-content.visible {
+            display: block;
+        }
+        .data-section {
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 20px;
+        }
+        .data-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+        .data-table th {
+            background-color: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .data-table tbody tr:nth-child(even) {
+            background-color: #fdfdfd;
+        }
+        .data-table tbody tr:hover {
+            background-color: #ebf8ff;
+        }
+        .loading-message, .error-message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #4a5568;
+        }
+        .error-message {
+            color: #dc2626;
+        }
+        .average-scores {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            background-color: #ecfdf5;
+            text-align: center;
+        }
+        .average-scores p {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 10px;
+        }
+        .average-scores span {
+            font-weight: 700;
+            color: #047857;
+        }
+        .filter-section {
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-section label {
+            font-weight: 500;
+            color: #2d3748;
+        }
+        .filter-section input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+        }
+        .filter-section button {
+            background-color: #6366f1;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .filter-section button:hover {
+            background-color: #4f46e5;
+        }
+        .logout-button {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 20px; /* Space from filter buttons */
+        }
+        .logout-button:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .auth-section input {
+                width: 150px;
+                margin-bottom: 10px;
+            }
+            .auth-section button {
+                width: 100%;
+            }
+            .data-table th, .data-table td {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-section label,
+            .filter-section input[type="date"],
+            .filter-section button,
+            .logout-button {
+                width: 100%;
+                margin: 5px 0; /* Adjust margin for stacked elements */
+            }
+            .logout-button {
+                margin-left: 0; /* Remove left margin when stacked */
+            }
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            .auth-section input {
+                width: 100%;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>관리자 대시보드</h1>
+
+        <div class="auth-section" id="authSection">
+            <p>관리자 비밀번호를 입력하세요:</p>
+            <input type="password" id="adminPassword" placeholder="비밀번호">
+            <button id="loginButton">로그인</button>
+            <p id="authMessage" style="color: red; margin-top: 10px;"></p>
+        </div>
+
+        <div class="dashboard-content" id="dashboardContent">
+            <div class="filter-section">
+                <label for="startDate">시작 날짜:</label>
+                <input type="date" id="startDate">
+                <label for="endDate">종료 날짜:</label>
+                <input type="date" id="endDate">
+                <button id="filterButton">필터링</button>
+                <button id="logoutButton" class="logout-button">로그아웃</button>
+            </div>
+
+            <div class="average-scores">
+                <p>1조 평균 인지 실패 점수: <span id="avgScoreGroup1">N/A</span></p>
+                <p>2조 평균 인지 실패 점수: <span id="avgScoreGroup2">N/A</span></p>
+            </div>
+
+            <div class="data-section">
+                <h2>모든 설문 응답</h2>
+                <p id="loadingMessage" class="loading-message">데이터를 불러오는 중...</p>
+                <p id="dataErrorMessage" class="error-message hidden"></p>
+                <table class="data-table" id="surveyDataTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>조</th>
+                            <th>총점</th>
+                            <th>응답 날짜</th>
+                            <th>사용자 ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+                <p id="noDataMessage" class="loading-message hidden">해당 기간의 데이터가 없습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Firebase
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const ADMIN_PASSWORD = "admin"; // Simple client-side password for demo
+
+        const authSection = document.getElementById('authSection');
+        const adminPasswordInput = document.getElementById('adminPassword');
+        const loginButton = document.getElementById('loginButton');
+        const authMessage = document.getElementById('authMessage');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const dataErrorMessage = document.getElementById('dataErrorMessage');
+        const surveyDataTableBody = document.querySelector('#surveyDataTable tbody');
+        const avgScoreGroup1 = document.getElementById('avgScoreGroup1');
+        const avgScoreGroup2 = document.getElementById('avgScoreGroup2');
+        const noDataMessage = document.getElementById('noDataMessage');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const filterButton = document.getElementById('filterButton');
+        const logoutButton = document.getElementById('logoutButton'); // New logout button
+
+        let isAuthReady = false; // Flag to ensure Firebase auth is ready
+
+        // Authenticate user anonymously for data access
+        async function authenticateAndLoadData() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                isAuthReady = true;
+                console.log("Firebase authenticated for admin dashboard.");
+                // If already logged in, directly show dashboard
+                if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                    showDashboard();
+                    fetchSurveyData();
+                }
+            } catch (error) {
+                console.error("Firebase authentication error:", error);
+                dataErrorMessage.textContent = `인증 오류: ${error.message}`;
+                dataErrorMessage.classList.remove('hidden');
+            }
+        }
+
+        async function fetchSurveyData(startDate = null, endDate = null) {
+            loadingMessage.classList.remove('hidden');
+            dataErrorMessage.classList.add('hidden');
+            noDataMessage.classList.add('hidden');
+            surveyDataTableBody.innerHTML = ''; // Clear existing data
+            avgScoreGroup1.textContent = 'N/A';
+            avgScoreGroup2.textContent = 'N/A';
+
+            if (!isAuthReady) {
+                dataErrorMessage.textContent = "Firebase 인증 준비 중입니다. 잠시 후 다시 시도해주세요.";
+                dataErrorMessage.classList.remove('hidden');
+                loadingMessage.classList.add('hidden');
+                return;
+            }
+
+            try {
+                // Construct the query
+                let q = collection(db, `artifacts/${appId}/public/data/cfq_responses`);
+
+                if (startDate && endDate) {
+                    const startTimestamp = new Date(startDate);
+                    const endTimestamp = new Date(endDate);
+                    // Adjust end date to include the whole day
+                    endTimestamp.setHours(23, 59, 59, 999);
+
+                    q = query(q, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp));
+                }
+                // Firestore orderBy can cause issues if indexes are not set.
+                // For simplicity and to avoid index errors, we will sort in memory.
+                // q = query(q); // Removed orderBy to avoid potential index issues
+
+                const querySnapshot = await getDocs(q);
+                const allResponses = [];
+                let group1Scores = [];
+                let group2Scores = [];
+
+                if (querySnapshot.empty) {
+                    noDataMessage.classList.remove('hidden');
+                    loadingMessage.classList.add('hidden');
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    allResponses.push({ id: doc.id, ...data });
+
+                    // Aggregate scores for average calculation
+                    if (data.group === '1조' && typeof data.totalScore === 'number') {
+                        group1Scores.push(data.totalScore);
+                    } else if (data.group === '2조' && typeof data.totalScore === 'number') {
+                        group2Scores.push(data.totalScore);
+                    }
+                });
+
+                // Sort responses by timestamp in memory (client-side)
+                allResponses.sort((a, b) => a.timestamp.toDate() - b.timestamp.toDate());
+
+                // Populate table
+                allResponses.forEach(response => {
+                    const row = surveyDataTableBody.insertRow();
+                    row.insertCell(0).textContent = response.id.substring(0, 8) + '...'; // Shorten ID
+                    row.insertCell(1).textContent = response.group;
+                    row.insertCell(2).textContent = response.totalScore;
+                    row.insertCell(3).textContent = response.timestamp.toDate().toLocaleString('ko-KR');
+                    row.insertCell(4).textContent = response.userId ? response.userId.substring(0, 8) + '...' : 'N/A'; // Shorten User ID
+                });
+
+                // Calculate and display averages
+                const calculateAverage = (scores) => scores.length > 0 ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 'N/A';
+
+                avgScoreGroup1.textContent = calculateAverage(group1Scores);
+                avgScoreGroup2.textContent = calculateAverage(group2Scores);
+
+            } catch (e) {
+                dataErrorMessage.textContent = `데이터 로딩 중 오류 발생: ${e.message}`;
+                dataErrorMessage.classList.remove('hidden');
+                console.error("Error fetching documents: ", e);
+            } finally {
+                loadingMessage.classList.add('hidden');
+            }
+        }
+
+        function showDashboard() {
+            authSection.style.display = 'none';
+            dashboardContent.classList.add('visible');
+            // Set default filter dates to today
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            startDateInput.value = `${year}-${month}-01`; // Start of current month
+            endDateInput.value = `${year}-${month}-${day}`; // Today
+
+            fetchSurveyData(startDateInput.value, endDateInput.value); // Fetch data with default dates
+        }
+
+        function hideDashboard() {
+            authSection.style.display = 'block';
+            dashboardContent.classList.remove('visible');
+            adminPasswordInput.value = ''; // Clear password field
+            authMessage.textContent = ''; // Clear auth message
+            sessionStorage.removeItem('adminLoggedIn'); // Clear login state
+        }
+
+        loginButton.addEventListener('click', () => {
+            if (adminPasswordInput.value === ADMIN_PASSWORD) {
+                authMessage.textContent = '';
+                showDashboard();
+            } else {
+                authMessage.textContent = '잘못된 비밀번호입니다.';
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth); // Sign out from Firebase Auth (if logged in)
+                hideDashboard();
+                console.log("Logged out successfully.");
+            } catch (error) {
+                console.error("Error during logout:", error);
+                authMessage.textContent = `로그아웃 오류: ${error.message}`;
+                authMessage.style.display = 'block'; // Show auth message if error
+            }
+        });
+
+        // Initial authentication attempt when page loads
+        authenticateAndLoadData();
+
+        // Filter button event listener
+        filterButton.addEventListener('click', () => {
+            fetchSurveyData(startDateInput.value, endDateInput.value);
+        });
+    </script>
+</body>
+</html>
