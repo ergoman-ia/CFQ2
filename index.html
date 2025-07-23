@@ -6,7 +6,7 @@
     <title>인지실패 설문지 (CFQ 2.0)</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Changed to a common system font */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f2f5;
             display: flex;
             flex-direction: column;
@@ -14,7 +14,7 @@
             min-height: 100vh;
             padding: 20px;
             box-sizing: border-box;
-            margin: 0; /* Ensure no default body margin */
+            margin: 0;
         }
         .header-section {
             width: 100%;
@@ -30,19 +30,19 @@
             box-sizing: border-box;
         }
         .header-section h1 {
-            font-size: 2rem; /* text-3xl */
-            font-weight: 700; /* font-bold */
+            font-size: 2rem;
+            font-weight: 700;
             text-align: center;
-            color: #1a202c; /* gray-800 */
-            margin-bottom: 1.5rem; /* mb-6 */
+            color: #1a202c;
+            margin-bottom: 1.5rem;
         }
         .header-section p {
-            color: #4a5568; /* gray-600 */
+            color: #4a5568;
             text-align: center;
-            margin-bottom: 1rem; /* mb-4 */
+            margin-bottom: 1rem;
         }
         .header-section strong {
-            color: #3182ce; /* A blue color for emphasis */
+            color: #3182ce;
             font-weight: 700;
         }
         .score-legend {
@@ -67,11 +67,11 @@
             max-width: 800px;
             width: 100%;
             border: 1px solid #e0e0e0;
-            margin-top: 250px; /* Adjusted space for the sticky header */
+            margin-top: 250px;
             margin-bottom: 20px;
         }
         .group-selection {
-            background-color: #e2e8f0; /* light blue-gray */
+            background-color: #e2e8f0;
             padding: 20px;
             margin-bottom: 20px;
             border-radius: 10px;
@@ -79,9 +79,9 @@
             text-align: center;
         }
         .group-selection p {
-            font-size: 1.125rem; /* text-lg */
-            font-weight: 600; /* font-semibold */
-            color: #2d3748; /* gray-800 */
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #2d3748;
             margin-bottom: 15px;
         }
         .group-selection .radio-group-horizontal {
@@ -100,16 +100,12 @@
             font-weight: 500;
             color: #2d3748;
         }
-        .group-selection .radio-group-horizontal label:hover {
-            background-color: #ebf8ff; /* light blue */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
         .group-selection .radio-group-horizontal input[type="radio"] {
             margin-right: 8px;
-            accent-color: #4c51bf; /* indigo-700 */
+            accent-color: #4c51bf;
         }
         .group-selection .radio-group-horizontal input[type="radio"]:checked + label {
-            background-color: #4c51bf; /* indigo-700 */
+            background-color: #4c51bf;
             color: white;
             border-color: #4c51bf;
             box-shadow: 0 4px 10px rgba(76, 81, 191, 0.2);
@@ -121,25 +117,25 @@
             margin-bottom: 20px;
             border-radius: 10px;
             border: 1px solid #e5e5e5;
-            transition: background-color 0.3s ease, border-color 0.3s ease; /* Add transition for smooth change */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         .question-card.question-answered {
-            background-color: #dcfce7; /* light green-100 */
-            border-color: #86efac; /* light green-300 */
+            background-color: #dcfce7;
+            border-color: #86efac;
         }
         .question-card:last-child {
             margin-bottom: 0;
         }
         .question-card p {
-            font-size: 1.125rem; /* text-lg */
-            font-weight: 600; /* font-semibold */
-            color: #2d3748; /* gray-700 */
-            margin-bottom: 1rem; /* mb-4 */
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
         }
         .radio-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px; /* Slightly reduced gap for numbers */
+            gap: 8px;
             justify-content: space-between;
         }
         .radio-label {
@@ -153,43 +149,43 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            border: 1px solid #cbd5e0; /* d1d5db */
+            border: 1px solid #cbd5e0;
             text-align: center;
             font-size: 1rem;
             color: #4a5568;
         }
         .radio-label:hover {
-            background-color: #e2e8f0; /* eef2ff */
+            background-color: #e2e8f0;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
         input[type="radio"] {
             margin-bottom: 5px;
-            accent-color: #4c51bf; /* indigo-600 */
+            accent-color: #4c51bf;
         }
         input[type="radio"]:checked + .radio-label {
-            background-color: #4c51bf; /* indigo-600 */
+            background-color: #4c51bf;
             color: white;
             border-color: #4c51bf;
             box-shadow: 0 4px 10px rgba(76, 81, 191, 0.2);
         }
         .submit-button {
             width: 100%;
-            background-color: #4c51bf; /* indigo-600 */
+            background-color: #4c51bf;
             color: white;
-            padding: 12px 20px; /* py-3 */
-            border-radius: 8px; /* rounded-lg */
-            font-weight: 600; /* font-semibold */
-            font-size: 1.125rem; /* text-lg */
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.125rem;
             border: none;
             cursor: pointer;
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .submit-button:hover {
-            background-color: #322f87; /* indigo-700 */
+            background-color: #322f87;
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
         .submit-button .spinner {
@@ -240,7 +236,7 @@
         .modal-content p {
             font-size: 1.125rem;
             font-weight: 600;
-            color: #dc2626; /* red-600 */
+            color: #dc2626;
             margin-bottom: 16px;
         }
         .modal-content button {
@@ -259,13 +255,13 @@
             margin-top: 15px;
             font-size: 1rem;
             font-weight: 500;
-            color: #10b981; /* green-500 */
+            color: #10b981;
         }
         .error-message {
             margin-top: 15px;
             font-size: 1rem;
             font-weight: 500;
-            color: #ef4444; /* red-500 */
+            color: #ef4444;
         }
         .admin-link-container {
             margin-top: 30px;
@@ -285,7 +281,7 @@
             background-color: #6366f1;
             color: white;
         }
-        .small-text { /* New CSS class for smaller text */
+        .small-text {
             font-size: 70%;
         }
 
@@ -310,7 +306,7 @@
                 font-size: 0.8rem;
             }
             .container {
-                margin-top: 220px; /* Adjusted for smaller sticky header on mobile */
+                margin-top: 220px;
                 padding: 20px;
             }
             .question-card p {
@@ -318,7 +314,7 @@
                 margin-bottom: 0.8rem;
             }
             .radio-group {
-                flex-direction: row; /* Keep options horizontal but allow wrap */
+                flex-direction: row;
                 justify-content: space-around;
                 gap: 5px;
             }
@@ -788,9 +784,8 @@
         <div id="result" class="result-box hidden">
             <p>당신의 인지 실패 점수는: <span id="score"></span>점 입니다.</p>
             <p id="selectedGroup" class="mt-2 text-base"></p>
-            <!-- 사용자 ID와 문서 ID는 더 이상 표시하지 않습니다. -->
-            <p id="saveStatus" class="save-status-message hidden"></p> <!-- 저장 상태 메시지 -->
-            <p id="errorMessage" class="error-message hidden"></p> <!-- 오류 메시지 -->
+            <p id="saveStatus" class="save-status-message hidden"></p>
+            <p id="errorMessage" class="error-message hidden"></p>
         </div>
 
         <div class="admin-link-container">
@@ -799,67 +794,72 @@
     </div>
 
     <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+        console.log("Survey script started.");
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyDYHBQ7S0cxvgcCbUL2tSiy997l9w-RPqM",
-    authDomain: "cfq2-12553.firebaseapp.com",
-    projectId: "cfq2-12553",
-    storageBucket: "cfq2-12553.firebasestorage.app",
-    messagingSenderId: "790402222541",
-    appId: "1:790402222541:web:9df56ea1ec7c3d25d55c84"
-  };
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase 프로젝트 설정:
+        // *** 여기에 사용자님의 Firebase 프로젝트 설정 코드를 붙여넣으세요. ***
+        // 예시:
+        const firebaseConfig = {
+  apiKey: "AIzaSyDYHBQ7S0cxvgcCbUL2tSiy997l9w-RPqM",
+  authDomain: "cfq2-12553.firebaseapp.com",
+  projectId: "cfq2-12553",
+  storageBucket: "cfq2-12553.firebasestorage.app",
+  messagingSenderId: "790402222541",
+  appId: "1:790402222541:web:9df56ea1ec7c3d25d55c84"
+             // measurementId: "YOUR_MEASUREMENT_ID"
+        };
+        // *** 위 예시를 지우고 실제 Firebase 설정을 붙여넣으세요. ***
+
+        // Firebase 설정이 제대로 되었는지 확인 (디버깅용)
+        console.log("Firebase config loaded:", firebaseConfig); // Firebase 설정 내용 확인
+        if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
+            console.error("Firebase config is empty or incomplete. Please update firebaseConfig with your actual Firebase project configuration.");
+            alert("Firebase 설정이 비어있거나 불완전합니다. Firebase 프로젝트 설정을 코드에 추가해야 합니다.");
+        }
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        console.log("Firebase initialized in survey script."); // 디버깅 로그
+        console.log("Firebase initialized in survey script.");
 
         let currentUserId = null;
-        // GitHub Pages 환경에서는 __app_id가 정의되지 않을 수 있으므로 기본값을 사용합니다.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const projectId = firebaseConfig.projectId || 'default-project-id';
 
-        // Authenticate user
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                console.log("User authenticated in survey: ", currentUserId); // 디버깅 로그
+                console.log("User authenticated in survey: ", currentUserId);
             } else {
                 try {
-                    console.log("Attempting anonymous sign-in in survey."); // 디버깅 로그
-                    // GitHub Pages 환경에서는 __initial_auth_token이 정의되지 않을 수 있으므로 익명 로그인을 시도합니다.
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    console.log("Anonymous sign-in successful in survey."); // 디버깅 로그
+                    console.log("Attempting anonymous sign-in in survey.");
+                    await signInAnonymously(auth);
+                    currentUserId = auth.currentUser.uid;
+                    console.log("Anonymous sign-in successful in survey. User ID:", currentUserId);
                 } catch (error) {
-                    console.error("Firebase authentication error in survey:", error); // 디버깅 로그
+                    console.error("Firebase authentication error in survey:", error);
                     document.getElementById('errorMessage').textContent = `인증 오류: ${error.message}`;
                     document.getElementById('errorMessage').classList.remove('hidden');
                 }
             }
         });
 
-        // Add event listeners to change background color when a radio button is selected
         document.querySelectorAll('.question-card').forEach(card => {
             const radioButtons = card.querySelectorAll('input[type="radio"]');
             radioButtons.forEach(radio => {
                 radio.addEventListener('change', () => {
-                    console.log(`Radio button changed for ${radio.name}. Adding 'question-answered' to card.`); // 디버깅 로그
+                    console.log(`Radio button changed for ${radio.name}. Adding 'question-answered' to card.`);
                     card.classList.add('question-answered');
                 });
             });
         });
 
         document.getElementById('cfqForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent default form submission
-            console.log("Form submission initiated."); // 디버깅 로그
+            event.preventDefault();
+            console.log("Form submission initiated.");
 
             const submitButton = document.getElementById('submitButton');
             const buttonText = document.getElementById('buttonText');
@@ -867,12 +867,10 @@
             const saveStatus = document.getElementById('saveStatus');
             const errorMessage = document.getElementById('errorMessage');
 
-            // Reset messages
             saveStatus.classList.add('hidden');
             errorMessage.classList.add('hidden');
             errorMessage.textContent = '';
 
-            // Show loading state
             buttonText.textContent = '저장 중...';
             loadingSpinner.classList.remove('hidden');
             submitButton.disabled = true;
@@ -886,7 +884,6 @@
             let allAnswered = true;
             let questionResponses = {};
 
-            // Check if group is selected
             const selectedGroup = form.elements['group'].value;
             if (selectedGroup === "") {
                 allAnswered = false;
@@ -902,8 +899,7 @@
             });
 
             if (!allAnswered) {
-                console.log("Not all questions answered or group not selected."); // 디버깅 로그
-                // Hide loading state and enable button
+                console.log("Not all questions answered or group not selected.");
                 buttonText.textContent = '결과 보기 및 저장하기';
                 loadingSpinner.classList.add('hidden');
                 submitButton.disabled = false;
@@ -922,9 +918,8 @@
 
             document.getElementById('score').textContent = totalScore;
             document.getElementById('selectedGroup').textContent = `선택한 조: ${selectedGroup}`;
-            console.log(`Total Score: ${totalScore}, Selected Group: ${selectedGroup}`); // 디버깅 로그
+            console.log(`Total Score: ${totalScore}, Selected Group: ${selectedGroup}`);
 
-            // Prepare data for Firestore
             const surveyData = {
                 userId: currentUserId,
                 group: selectedGroup,
@@ -932,34 +927,31 @@
                 responses: questionResponses,
                 timestamp: new Date()
             };
-            console.log("Survey data prepared:", surveyData); // 디버깅 로그
+            console.log("Survey data prepared:", surveyData);
 
             try {
-                // Ensure user is authenticated before saving
                 if (!auth.currentUser) {
                     throw new Error("사용자가 인증되지 않았습니다. 잠시 후 다시 시도해주세요.");
                 }
-                console.log("Attempting to save data to Firestore."); // 디버깅 로그
+                console.log("Attempting to save data to Firestore.");
 
-                // Save data to Firestore in a public collection
-                const docRef = await addDoc(collection(db, `artifacts/${appId}/public/data/cfq_responses`), surveyData);
+                const docRef = await addDoc(collection(db, `artifacts/${projectId}/public/data/cfq_responses`), surveyData);
                 saveStatus.textContent = `저장 완료!`;
                 saveStatus.classList.remove('hidden');
-                console.log("Document written with ID: ", docRef.id); // 디버깅 로그
+                console.log("Document written with ID: ", docRef.id);
 
             } catch (e) {
                 errorMessage.textContent = `저장 중 오류 발생: ${e.message}`;
                 errorMessage.classList.remove('hidden');
-                console.error("Error adding document to Firestore: ", e); // 디버깅 로그
+                console.error("Error adding document to Firestore: ", e);
             } finally {
-                // Hide loading state and enable button
                 buttonText.textContent = '결과 보기 및 저장하기';
                 loadingSpinner.classList.add('hidden');
                 submitButton.disabled = false;
 
                 document.getElementById('result').classList.remove('hidden');
                 document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
-                console.log("Form submission process finished."); // 디버깅 로그
+                console.log("Form submission process finished.");
             }
         });
     </script>
