@@ -532,8 +532,9 @@
 
                 const calculateAverage = (scores) => scores.length > 0 ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 'N/A';
 
-                avgScoreGroup1.textContent = calculateAverage(group1Scores);
-                avgScoreGroup2.textContent = calculateAverage(group2Scores);
+                // Update textContent to include count of participants
+                avgScoreGroup1.textContent = `${calculateAverage(group1Scores)} (${group1Scores.length}명)`;
+                avgScoreGroup2.textContent = `${calculateAverage(group2Scores)} (${group2Scores.length}명)`;
                 console.log(`Average scores calculated: Group 1=${avgScoreGroup1.textContent}, Group 2=${avgScoreGroup2.textContent}`);
 
             } catch (e) {
