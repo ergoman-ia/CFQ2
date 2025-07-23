@@ -264,19 +264,25 @@
     </div>
 
     <script type="module">
+        console.log("Admin Dashboard script started."); // Debugging log
+
         // Firebase SDK imports
+        // GitHub Pages에서 본인의 Firebase 프로젝트를 사용하려면 아래 firebaseConfig 객체를 본인의 프로젝트 설정으로 변경하세요.
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Initialize Firebase
+        // GitHub Pages에서 본인의 Firebase 프로젝트를 사용하려면 아래 firebaseConfig 객체를 본인의 프로젝트 설정으로 변경하세요.
+        // 예시: const firebaseConfig = { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID", ... };
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        console.log("Firebase initialized in admin script."); // Debugging log
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const ADMIN_PASSWORD = "admin"; // Simple client-side password for demo
+        const ADMIN_PASSWORD = "admin"; // Simple client-side password for demo. 실제 환경에서는 절대 이 방식을 사용하지 마세요!
 
         const authSection = document.getElementById('authSection');
         const adminPasswordInput = document.getElementById('adminPassword');
@@ -292,27 +298,31 @@
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
         const filterButton = document.getElementById('filterButton');
-        const logoutButton = document.getElementById('logoutButton'); // New logout button
+        const logoutButton = document.getElementById('logoutButton');
+
+        console.log("Admin Dashboard DOM elements acquired."); // Debugging log
 
         let isAuthReady = false; // Flag to ensure Firebase auth is ready
 
         // Authenticate user anonymously for data access
         async function authenticateAndLoadData() {
             try {
+                console.log("Attempting Firebase authentication for admin dashboard."); // Debugging log
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
                 isAuthReady = true;
-                console.log("Firebase authenticated for admin dashboard.");
-                // If already logged in, directly show dashboard
+                console.log("Firebase authenticated for admin dashboard."); // Debugging log
+                // If already logged in (from session storage), directly show dashboard
                 if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                    console.log("Admin already logged in via session storage. Showing dashboard."); // Debugging log
                     showDashboard();
-                    fetchSurveyData();
+                    // fetchSurveyData() is called inside showDashboard with default dates
                 }
             } catch (error) {
-                console.error("Firebase authentication error:", error);
+                console.error("Firebase authentication error in admin:", error); // Debugging log
                 dataErrorMessage.textContent = `인증 오류: ${error.message}`;
                 dataErrorMessage.classList.remove('hidden');
             }
@@ -330,24 +340,21 @@
                 dataErrorMessage.textContent = "Firebase 인증 준비 중입니다. 잠시 후 다시 시도해주세요.";
                 dataErrorMessage.classList.remove('hidden');
                 loadingMessage.classList.add('hidden');
+                console.log("Firebase not ready, cannot fetch data."); // Debugging log
                 return;
             }
 
             try {
-                // Construct the query
                 let q = collection(db, `artifacts/${appId}/public/data/cfq_responses`);
+                console.log(`Fetching data from collection: artifacts/${appId}/public/data/cfq_responses`); // Debugging log
 
                 if (startDate && endDate) {
                     const startTimestamp = new Date(startDate);
                     const endTimestamp = new Date(endDate);
-                    // Adjust end date to include the whole day
-                    endTimestamp.setHours(23, 59, 59, 999);
-
+                    endTimestamp.setHours(23, 59, 59, 999); // Include the whole end day
                     q = query(q, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp));
+                    console.log(`Filtering data from ${startTimestamp} to ${endTimestamp}`); // Debugging log
                 }
-                // Firestore orderBy can cause issues if indexes are not set.
-                // For simplicity and to avoid index errors, we will sort in memory.
-                // q = query(q); // Removed orderBy to avoid potential index issues
 
                 const querySnapshot = await getDocs(q);
                 const allResponses = [];
@@ -357,6 +364,7 @@
                 if (querySnapshot.empty) {
                     noDataMessage.classList.remove('hidden');
                     loadingMessage.classList.add('hidden');
+                    console.log("No data found for the given criteria."); // Debugging log
                     return;
                 }
 
@@ -364,13 +372,13 @@
                     const data = doc.data();
                     allResponses.push({ id: doc.id, ...data });
 
-                    // Aggregate scores for average calculation
                     if (data.group === '1조' && typeof data.totalScore === 'number') {
                         group1Scores.push(data.totalScore);
                     } else if (data.group === '2조' && typeof data.totalScore === 'number') {
                         group2Scores.push(data.totalScore);
                     }
                 });
+                console.log(`Fetched ${allResponses.length} responses.`); // Debugging log
 
                 // Sort responses by timestamp in memory (client-side)
                 allResponses.sort((a, b) => a.timestamp.toDate() - b.timestamp.toDate());
@@ -378,11 +386,11 @@
                 // Populate table
                 allResponses.forEach(response => {
                     const row = surveyDataTableBody.insertRow();
-                    row.insertCell(0).textContent = response.id.substring(0, 8) + '...'; // Shorten ID
+                    row.insertCell(0).textContent = response.id.substring(0, 8) + '...';
                     row.insertCell(1).textContent = response.group;
                     row.insertCell(2).textContent = response.totalScore;
                     row.insertCell(3).textContent = response.timestamp.toDate().toLocaleString('ko-KR');
-                    row.insertCell(4).textContent = response.userId ? response.userId.substring(0, 8) + '...' : 'N/A'; // Shorten User ID
+                    row.insertCell(4).textContent = response.userId ? response.userId.substring(0, 8) + '...' : 'N/A';
                 });
 
                 // Calculate and display averages
@@ -390,11 +398,12 @@
 
                 avgScoreGroup1.textContent = calculateAverage(group1Scores);
                 avgScoreGroup2.textContent = calculateAverage(group2Scores);
+                console.log(`Average scores calculated: Group 1=${avgScoreGroup1.textContent}, Group 2=${avgScoreGroup2.textContent}`); // Debugging log
 
             } catch (e) {
                 dataErrorMessage.textContent = `데이터 로딩 중 오류 발생: ${e.message}`;
                 dataErrorMessage.classList.remove('hidden');
-                console.error("Error fetching documents: ", e);
+                console.error("Error fetching documents from Firestore: ", e); // Debugging log
             } finally {
                 loadingMessage.classList.add('hidden');
             }
@@ -403,6 +412,8 @@
         function showDashboard() {
             authSection.style.display = 'none';
             dashboardContent.classList.add('visible');
+            console.log("Dashboard visible."); // Debugging log
+
             // Set default filter dates to today
             const today = new Date();
             const year = today.getFullYear();
@@ -420,26 +431,35 @@
             adminPasswordInput.value = ''; // Clear password field
             authMessage.textContent = ''; // Clear auth message
             sessionStorage.removeItem('adminLoggedIn'); // Clear login state
+            console.log("Dashboard hidden, logged out."); // Debugging log
         }
 
         loginButton.addEventListener('click', () => {
-            if (adminPasswordInput.value === ADMIN_PASSWORD) {
+            console.log("Login button clicked."); // Debugging log
+            const enteredPassword = adminPasswordInput.value;
+            console.log(`Entered password: "${enteredPassword}"`); // Debugging: log entered password
+            console.log(`Expected password: "${ADMIN_PASSWORD}"`); // Debugging: log expected password
+
+            if (enteredPassword === ADMIN_PASSWORD) {
                 authMessage.textContent = '';
+                sessionStorage.setItem('adminLoggedIn', 'true'); // Persist login state
                 showDashboard();
             } else {
                 authMessage.textContent = '잘못된 비밀번호입니다.';
+                console.log("Incorrect password entered."); // Debugging log
             }
         });
 
         logoutButton.addEventListener('click', async () => {
+            console.log("Logout button clicked."); // Debugging log
             try {
                 await signOut(auth); // Sign out from Firebase Auth (if logged in)
                 hideDashboard();
                 console.log("Logged out successfully.");
             } catch (error) {
-                console.error("Error during logout:", error);
+                console.error("Error during logout:", error); // Debugging log
                 authMessage.textContent = `로그아웃 오류: ${error.message}`;
-                authMessage.style.display = 'block'; // Show auth message if error
+                authMessage.style.display = 'block';
             }
         });
 
@@ -448,6 +468,7 @@
 
         // Filter button event listener
         filterButton.addEventListener('click', () => {
+            console.log("Filter button clicked."); // Debugging log
             fetchSurveyData(startDateInput.value, endDateInput.value);
         });
     </script>
