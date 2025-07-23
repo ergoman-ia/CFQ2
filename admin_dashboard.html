@@ -171,6 +171,67 @@
         .logout-button:hover {
             background-color: #dc2626;
         }
+        /* Style to hide columns */
+        .hidden-column {
+            display: none;
+        }
+        /* Delete button style */
+        .delete-button {
+            background-color: #dc2626; /* Red color */
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 10px; /* Space from filter buttons */
+        }
+        .delete-button:hover {
+            background-color: #b91c1c; /* Darker red on hover */
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            width: 300px;
+        }
+        .modal-content p {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 16px;
+        }
+        .modal-content button {
+            background-color: #4c51bf;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 0 5px; /* Space between buttons */
+        }
+        .modal-content button.cancel-button {
+            background-color: #6b7280; /* Gray for cancel */
+        }
+        .modal-content button:hover {
+            background-color: #322f87;
+        }
+        .modal-content button.cancel-button:hover {
+            background-color: #4b5563;
+        }
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -195,11 +256,13 @@
             .filter-section label,
             .filter-section input[type="date"],
             .filter-section button,
-            .logout-button {
+            .logout-button,
+            .delete-button { /* Include delete button in responsive stacking */
                 width: 100%;
                 margin: 5px 0;
             }
-            .logout-button {
+            .logout-button,
+            .delete-button {
                 margin-left: 0;
             }
         }
@@ -232,6 +295,7 @@
                 <label for="endDate">종료 날짜:</label>
                 <input type="date" id="endDate">
                 <button id="filterButton">필터링</button>
+                <button id="deleteSelectedButton" class="delete-button">선택 항목 삭제</button>
                 <button id="logoutButton" class="logout-button">로그아웃</button>
             </div>
 
@@ -247,11 +311,14 @@
                 <table class="data-table" id="surveyDataTable">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>
+                                <input type="checkbox" id="selectAllCheckbox"> 모두 선택
+                            </th> <!-- New checkbox column header with "Select All" -->
+                            <th class="hidden-column">ID</th>
                             <th>조</th>
                             <th>총점</th>
                             <th>응답 날짜</th>
-                            <th>사용자 ID</th>
+                            <th class="hidden-column">사용자 ID</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -268,12 +335,12 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, where, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase 프로젝트 설정:
         // *** 여기에 사용자님의 Firebase 프로젝트 설정 코드를 붙여넣으세요. ***
         // 예시:
-const firebaseConfig = {
+ const firebaseConfig = {
   apiKey: "AIzaSyDYHBQ7S0cxvgcCbUL2tSiy997l9w-RPqM",
   authDomain: "cfq2-12553.firebaseapp.com",
   projectId: "cfq2-12553",
@@ -285,7 +352,7 @@ const firebaseConfig = {
         // *** 위 예시를 지우고 실제 Firebase 설정을 붙여넣으세요. ***
 
         // Firebase 설정이 제대로 되었는지 확인 (디버깅용)
-        console.log("Firebase config loaded:", firebaseConfig); // Firebase 설정 내용 확인
+        console.log("Firebase config loaded:", firebaseConfig);
         if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
             console.error("Firebase config is empty or incomplete. Please update firebaseConfig with your actual Firebase project configuration.");
             alert("Firebase 설정이 비어있거나 불완전합니다. Firebase 프로젝트 설정을 코드에 추가해야 합니다.");
@@ -313,7 +380,9 @@ const firebaseConfig = {
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
         const filterButton = document.getElementById('filterButton');
+        const deleteSelectedButton = document.getElementById('deleteSelectedButton');
         const logoutButton = document.getElementById('logoutButton');
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox'); // "Select All" checkbox reference
 
         console.log("Admin Dashboard DOM elements acquired.");
 
@@ -325,7 +394,7 @@ const firebaseConfig = {
                 if (Object.keys(firebaseConfig).length > 0 && firebaseConfig.projectId) {
                     await signInAnonymously(auth);
                     isAuthReady = true;
-                    console.log("Firebase authenticated for admin dashboard.");
+                    console.log("Firebase authenticated for admin dashboard. Current User:", auth.currentUser);
                     if (sessionStorage.getItem('adminLoggedIn') === 'true') {
                         console.log("Admin already logged in via session storage. Showing dashboard.");
                         showDashboard();
@@ -349,6 +418,7 @@ const firebaseConfig = {
             surveyDataTableBody.innerHTML = '';
             avgScoreGroup1.textContent = 'N/A';
             avgScoreGroup2.textContent = 'N/A';
+            selectAllCheckbox.checked = false; // Reset "Select All" checkbox on new data load
 
             if (!isAuthReady) {
                 dataErrorMessage.textContent = "Firebase 인증 준비 중입니다. 잠시 후 다시 시도해주세요.";
@@ -398,11 +468,32 @@ const firebaseConfig = {
 
                 allResponses.forEach(response => {
                     const row = surveyDataTableBody.insertRow();
-                    row.insertCell(0).textContent = response.id.substring(0, 8) + '...';
-                    row.insertCell(1).textContent = response.group;
-                    row.insertCell(2).textContent = response.totalScore;
-                    row.insertCell(3).textContent = response.timestamp.toDate().toLocaleString('ko-KR');
-                    row.insertCell(4).textContent = response.userId ? response.userId.substring(0, 8) + '...' : 'N/A';
+
+                    // Checkbox cell
+                    const checkboxCell = row.insertCell(0);
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'row-checkbox';
+                    checkbox.dataset.docId = response.id; // Store document ID in data attribute
+                    checkbox.addEventListener('change', updateSelectAllCheckbox); // Add event listener for individual checkboxes
+                    checkboxCell.appendChild(checkbox);
+
+                    // ID 셀 (숨김)
+                    const idCell = row.insertCell(1);
+                    idCell.textContent = response.id.substring(0, 8) + '...';
+                    idCell.classList.add('hidden-column');
+
+                    // 조
+                    row.insertCell(2).textContent = response.group;
+                    // 총점
+                    row.insertCell(3).textContent = response.totalScore;
+                    // 응답 날짜
+                    row.insertCell(4).textContent = response.timestamp.toDate().toLocaleString('ko-KR');
+
+                    // 사용자 ID 셀 (숨김)
+                    const userIdCell = row.insertCell(5);
+                    userIdCell.textContent = response.userId ? response.userId.substring(0, 8) + '...' : 'N/A';
+                    userIdCell.classList.add('hidden-column');
                 });
 
                 const calculateAverage = (scores) => scores.length > 0 ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 'N/A';
@@ -444,6 +535,32 @@ const firebaseConfig = {
             console.log("Dashboard hidden, logged out.");
         }
 
+        // Function to show a custom modal message
+        function showModal(message, onConfirm = null, onCancel = null) {
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = 'modal-overlay';
+            modalOverlay.innerHTML = `
+                <div class="modal-content">
+                    <p>${message}</p>
+                    <button id="modalConfirmButton">확인</button>
+                    ${onCancel ? '<button id="modalCancelButton" class="cancel-button">취소</button>' : ''}
+                </div>
+            `;
+            document.body.appendChild(modalOverlay);
+
+            document.getElementById('modalConfirmButton').addEventListener('click', () => {
+                modalOverlay.remove();
+                if (onConfirm) onConfirm();
+            });
+
+            if (onCancel) {
+                document.getElementById('modalCancelButton').addEventListener('click', () => {
+                    modalOverlay.remove();
+                    if (onCancel) onCancel();
+                });
+            }
+        }
+
         loginButton.addEventListener('click', () => {
             console.log("Login button clicked.");
             const enteredPassword = adminPasswordInput.value;
@@ -468,9 +585,69 @@ const firebaseConfig = {
                 console.log("Logged out successfully.");
             } catch (error) {
                 console.error("Error during logout:", error);
-                authMessage.textContent = `로그아웃 오류: ${e.message}`;
+                authMessage.textContent = `로그아웃 오류: ${error.message}`;
                 authMessage.style.display = 'block';
             }
+        });
+
+        // Event listener for "Select All" checkbox
+        selectAllCheckbox.addEventListener('change', (event) => {
+            console.log("Select All checkbox changed.");
+            const isChecked = event.target.checked;
+            document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        });
+
+        // Function to update "Select All" checkbox based on individual checkboxes
+        function updateSelectAllCheckbox() {
+            const allCheckboxes = document.querySelectorAll('.row-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            console.log(`Individual checkbox changed. Total: ${allCheckboxes.length}, Checked: ${checkedCheckboxes.length}`);
+
+            if (allCheckboxes.length > 0 && allCheckboxes.length === checkedCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.checked = false;
+            }
+        }
+
+        // Event listener for Delete Selected button
+        deleteSelectedButton.addEventListener('click', () => {
+            console.log("Delete Selected button clicked.");
+            const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            const docIdsToDelete = Array.from(selectedCheckboxes).map(cb => cb.dataset.docId);
+
+            if (docIdsToDelete.length === 0) {
+                showModal("삭제할 항목을 선택해주세요.");
+                return;
+            }
+
+            showModal(`${docIdsToDelete.length}개의 항목을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`, async () => {
+                loadingMessage.classList.remove('hidden');
+                dataErrorMessage.classList.add('hidden');
+                try {
+                    const deletePromises = docIdsToDelete.map(docId => {
+                        const docRef = doc(db, `artifacts/${projectId}/public/data/cfq_responses`, docId);
+                        console.log(`Attempting to delete document: ${docId}`);
+                        return deleteDoc(docRef);
+                    });
+                    await Promise.all(deletePromises);
+                    console.log("Selected documents deleted successfully.");
+                    showModal("선택된 항목이 성공적으로 삭제되었습니다.");
+                    // Re-fetch data to update the table
+                    fetchSurveyData(startDateInput.value, endDateInput.value);
+                } catch (error) {
+                    console.error("Error deleting documents:", error);
+                    dataErrorMessage.textContent = `삭제 중 오류 발생: ${error.message}`;
+                    dataErrorMessage.classList.remove('hidden');
+                    showModal(`삭제 중 오류 발생: ${error.message}`);
+                } finally {
+                    loadingMessage.classList.add('hidden');
+                }
+            }, () => {
+                console.log("Deletion cancelled by user.");
+            });
         });
 
         authenticateAndLoadData();
