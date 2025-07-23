@@ -803,19 +803,19 @@
         // Firebase 프로젝트 설정:
         // *** 여기에 사용자님의 Firebase 프로젝트 설정 코드를 붙여넣으세요. ***
         // 예시:
-        const firebaseConfig = {
+ const firebaseConfig = {
   apiKey: "AIzaSyDYHBQ7S0cxvgcCbUL2tSiy997l9w-RPqM",
   authDomain: "cfq2-12553.firebaseapp.com",
   projectId: "cfq2-12553",
   storageBucket: "cfq2-12553.firebasestorage.app",
   messagingSenderId: "790402222541",
   appId: "1:790402222541:web:9df56ea1ec7c3d25d55c84"
-             // measurementId: "YOUR_MEASUREMENT_ID"
+             // measurementId: "YOUR_MEASUREMENT_ID" // Google Analytics를 사용하지 않으면 필요 없습니다.
         };
         // *** 위 예시를 지우고 실제 Firebase 설정을 붙여넣으세요. ***
 
         // Firebase 설정이 제대로 되었는지 확인 (디버깅용)
-        console.log("Firebase config loaded:", firebaseConfig); // Firebase 설정 내용 확인
+        console.log("Firebase config loaded:", firebaseConfig);
         if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
             console.error("Firebase config is empty or incomplete. Please update firebaseConfig with your actual Firebase project configuration.");
             alert("Firebase 설정이 비어있거나 불완전합니다. Firebase 프로젝트 설정을 코드에 추가해야 합니다.");
@@ -931,14 +931,23 @@
 
             try {
                 if (!auth.currentUser) {
+                    console.error("Authentication failed: auth.currentUser is null before saving.");
                     throw new Error("사용자가 인증되지 않았습니다. 잠시 후 다시 시도해주세요.");
                 }
-                console.log("Attempting to save data to Firestore.");
+                console.log("Attempting to save data to Firestore at:", `artifacts/${projectId}/public/data/cfq_responses`);
 
                 const docRef = await addDoc(collection(db, `artifacts/${projectId}/public/data/cfq_responses`), surveyData);
                 saveStatus.textContent = `저장 완료!`;
                 saveStatus.classList.remove('hidden');
                 console.log("Document written with ID: ", docRef.id);
+
+                // --- 추가된 초기화 로직 시작 ---
+                form.reset(); // 폼의 모든 입력 필드 초기화 (라디오 버튼 포함)
+                document.querySelectorAll('.question-card').forEach(card => {
+                    card.classList.remove('question-answered'); // 배경색 초기화
+                });
+                document.getElementById('result').classList.add('hidden'); // 결과 박스 숨기기
+                // --- 추가된 초기화 로직 끝 ---
 
             } catch (e) {
                 errorMessage.textContent = `저장 중 오류 발생: ${e.message}`;
@@ -949,8 +958,11 @@
                 loadingSpinner.classList.add('hidden');
                 submitButton.disabled = false;
 
-                document.getElementById('result').classList.remove('hidden');
-                document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+                // 결과 박스는 성공 시에만 보여주고, 초기화 시 숨기므로 이 부분은 조건부로 변경
+                // if (saveStatus.classList.contains('hidden')) { // 에러가 없으면 결과 박스 보여주기
+                //     document.getElementById('result').classList.remove('hidden');
+                //     document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+                // }
                 console.log("Form submission process finished.");
             }
         });
