@@ -799,35 +799,58 @@
     </div>
 
     <script type="module">
+        console.log("Survey script started."); // 디버깅 로그
+
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Initialize Firebase
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // Firebase 프로젝트 설정:
+        // GitHub Pages에 배포할 경우, 아래 firebaseConfig 객체를 본인의 Firebase 프로젝트 설정으로 변경해야 합니다.
+        // Firebase 콘솔에서 웹 앱을 추가하고 제공되는 구성 정보를 여기에 붙여넣으세요.
+        // 예시:
+        // const firebaseConfig = {
+        //     apiKey: "YOUR_API_KEY",
+        //     authDomain: "YOUR_AUTH_DOMAIN",
+        //     projectId: "YOUR_PROJECT_ID",
+        //     storageBucket: "YOUR_STORAGE_BUCKET",
+        //     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        //     appId: "YOUR_APP_ID",
+        //     measurementId: "YOUR_MEASUREMENT_ID"
+        // };
+        const firebaseConfig = { /* 여기에 사용자님의 Firebase 설정 붙여넣기 */ }; // 현재는 비어있으므로 반드시 채워야 합니다.
+        if (Object.keys(firebaseConfig).length === 0) {
+            console.error("Firebase config is empty. Please replace '/* 여기에 사용자님의 Firebase 설정 붙여넣기 */' with your actual Firebase project configuration for GitHub Pages.");
+            alert("Firebase 설정이 비어있습니다. GitHub Pages에 배포하려면 Firebase 프로젝트 설정을 코드에 추가해야 합니다.");
+        }
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        console.log("Firebase initialized in survey script."); // 디버깅 로그
 
         let currentUserId = null;
+        // GitHub Pages 환경에서는 __app_id가 정의되지 않을 수 있으므로 기본값을 사용합니다.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         // Authenticate user
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                // document.getElementById('userIdDisplay').textContent = `사용자 ID: ${currentUserId}`; // 사용자 ID 표시 삭제
+                console.log("User authenticated in survey: ", currentUserId); // 디버깅 로그
             } else {
-                // Sign in anonymously if no user is authenticated
                 try {
+                    console.log("Attempting anonymous sign-in in survey."); // 디버깅 로그
+                    // GitHub Pages 환경에서는 __initial_auth_token이 정의되지 않을 수 있으므로 익명 로그인을 시도합니다.
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } else {
                         await signInAnonymously(auth);
                     }
+                    console.log("Anonymous sign-in successful in survey."); // 디버깅 로그
                 } catch (error) {
-                    console.error("Firebase authentication error:", error);
+                    console.error("Firebase authentication error in survey:", error); // 디버깅 로그
                     document.getElementById('errorMessage').textContent = `인증 오류: ${error.message}`;
                     document.getElementById('errorMessage').classList.remove('hidden');
                 }
@@ -839,6 +862,7 @@
             const radioButtons = card.querySelectorAll('input[type="radio"]');
             radioButtons.forEach(radio => {
                 radio.addEventListener('change', () => {
+                    console.log(`Radio button changed for ${radio.name}. Adding 'question-answered' to card.`); // 디버깅 로그
                     card.classList.add('question-answered');
                 });
             });
@@ -846,6 +870,7 @@
 
         document.getElementById('cfqForm').addEventListener('submit', async function(event) {
             event.preventDefault(); // Prevent default form submission
+            console.log("Form submission initiated."); // 디버깅 로그
 
             const submitButton = document.getElementById('submitButton');
             const buttonText = document.getElementById('buttonText');
@@ -888,6 +913,7 @@
             });
 
             if (!allAnswered) {
+                console.log("Not all questions answered or group not selected."); // 디버깅 로그
                 // Hide loading state and enable button
                 buttonText.textContent = '결과 보기 및 저장하기';
                 loadingSpinner.classList.add('hidden');
@@ -907,6 +933,7 @@
 
             document.getElementById('score').textContent = totalScore;
             document.getElementById('selectedGroup').textContent = `선택한 조: ${selectedGroup}`;
+            console.log(`Total Score: ${totalScore}, Selected Group: ${selectedGroup}`); // 디버깅 로그
 
             // Prepare data for Firestore
             const surveyData = {
@@ -916,25 +943,25 @@
                 responses: questionResponses,
                 timestamp: new Date()
             };
+            console.log("Survey data prepared:", surveyData); // 디버깅 로그
 
             try {
                 // Ensure user is authenticated before saving
                 if (!auth.currentUser) {
                     throw new Error("사용자가 인증되지 않았습니다. 잠시 후 다시 시도해주세요.");
                 }
+                console.log("Attempting to save data to Firestore."); // 디버깅 로그
 
                 // Save data to Firestore in a public collection
-                // This path allows any authenticated user (including anonymous) to read/write.
-                // For production, consider more granular security rules.
                 const docRef = await addDoc(collection(db, `artifacts/${appId}/public/data/cfq_responses`), surveyData);
-                saveStatus.textContent = `저장 완료!`; // 문서 ID 표시 삭제
+                saveStatus.textContent = `저장 완료!`;
                 saveStatus.classList.remove('hidden');
-                console.log("Document written with ID: ", docRef.id);
+                console.log("Document written with ID: ", docRef.id); // 디버깅 로그
 
             } catch (e) {
                 errorMessage.textContent = `저장 중 오류 발생: ${e.message}`;
                 errorMessage.classList.remove('hidden');
-                console.error("Error adding document: ", e);
+                console.error("Error adding document to Firestore: ", e); // 디버깅 로그
             } finally {
                 // Hide loading state and enable button
                 buttonText.textContent = '결과 보기 및 저장하기';
@@ -943,6 +970,7 @@
 
                 document.getElementById('result').classList.remove('hidden');
                 document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+                console.log("Form submission process finished."); // 디버깅 로그
             }
         });
     </script>

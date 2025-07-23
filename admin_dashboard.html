@@ -264,25 +264,39 @@
     </div>
 
     <script type="module">
-        console.log("Admin Dashboard script started."); // Debugging log
+        console.log("Admin Dashboard script started."); // 디버깅 로그
 
         // Firebase SDK imports
-        // GitHub Pages에서 본인의 Firebase 프로젝트를 사용하려면 아래 firebaseConfig 객체를 본인의 프로젝트 설정으로 변경하세요.
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Initialize Firebase
-        // GitHub Pages에서 본인의 Firebase 프로젝트를 사용하려면 아래 firebaseConfig 객체를 본인의 프로젝트 설정으로 변경하세요.
-        // 예시: const firebaseConfig = { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID", ... };
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // Firebase 프로젝트 설정:
+        // GitHub Pages에 배포할 경우, 아래 firebaseConfig 객체를 본인의 Firebase 프로젝트 설정으로 변경해야 합니다.
+        // Firebase 콘솔에서 웹 앱을 추가하고 제공되는 구성 정보를 여기에 붙여넣으세요.
+        // 예시:
+        // const firebaseConfig = {
+        //     apiKey: "YOUR_API_KEY",
+        //     authDomain: "YOUR_AUTH_DOMAIN",
+        //     projectId: "YOUR_PROJECT_ID",
+        //     storageBucket: "YOUR_STORAGE_BUCKET",
+        //     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        //     appId: "YOUR_APP_ID",
+        //     measurementId: "YOUR_MEASUREMENT_ID"
+        // };
+        const firebaseConfig = { /* 여기에 사용자님의 Firebase 설정 붙여넣기 */ }; // 현재는 비어있으므로 반드시 채워야 합니다.
+        if (Object.keys(firebaseConfig).length === 0) {
+            console.error("Firebase config is empty. Please replace '/* 여기에 사용자님의 Firebase 설정 붙여넣기 */' with your actual Firebase project configuration for GitHub Pages.");
+            alert("Firebase 설정이 비어있습니다. GitHub Pages에 배포하려면 Firebase 프로젝트 설정을 코드에 추가해야 합니다.");
+        }
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        console.log("Firebase initialized in admin script."); // Debugging log
+        console.log("Firebase initialized in admin script."); // 디버깅 로그
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const ADMIN_PASSWORD = "admin"; // Simple client-side password for demo. 실제 환경에서는 절대 이 방식을 사용하지 마세요!
+        const ADMIN_PASSWORD = "admin"; // 데모용 비밀번호입니다. 실제 환경에서는 절대 이 방식을 사용하지 마세요!
 
         const authSection = document.getElementById('authSection');
         const adminPasswordInput = document.getElementById('adminPassword');
@@ -300,29 +314,30 @@
         const filterButton = document.getElementById('filterButton');
         const logoutButton = document.getElementById('logoutButton');
 
-        console.log("Admin Dashboard DOM elements acquired."); // Debugging log
+        console.log("Admin Dashboard DOM elements acquired."); // 디버깅 로그
 
-        let isAuthReady = false; // Flag to ensure Firebase auth is ready
+        let isAuthReady = false; // Firebase 인증 준비 완료 플래그
 
         // Authenticate user anonymously for data access
         async function authenticateAndLoadData() {
             try {
-                console.log("Attempting Firebase authentication for admin dashboard."); // Debugging log
+                console.log("Attempting Firebase authentication for admin dashboard."); // 디버깅 로그
+                // GitHub Pages 환경에서는 __initial_auth_token이 정의되지 않을 수 있으므로 익명 로그인을 시도합니다.
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
                 isAuthReady = true;
-                console.log("Firebase authenticated for admin dashboard."); // Debugging log
-                // If already logged in (from session storage), directly show dashboard
+                console.log("Firebase authenticated for admin dashboard."); // 디버깅 로그
+                // 세션 스토리지에 로그인 정보가 있다면 대시보드를 바로 표시합니다.
                 if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-                    console.log("Admin already logged in via session storage. Showing dashboard."); // Debugging log
+                    console.log("Admin already logged in via session storage. Showing dashboard."); // 디버깅 로그
                     showDashboard();
-                    // fetchSurveyData() is called inside showDashboard with default dates
+                    // fetchSurveyData()는 showDashboard 내부에서 기본 날짜로 호출됩니다.
                 }
             } catch (error) {
-                console.error("Firebase authentication error in admin:", error); // Debugging log
+                console.error("Firebase authentication error in admin:", error); // 디버깅 로그
                 dataErrorMessage.textContent = `인증 오류: ${error.message}`;
                 dataErrorMessage.classList.remove('hidden');
             }
@@ -332,7 +347,7 @@
             loadingMessage.classList.remove('hidden');
             dataErrorMessage.classList.add('hidden');
             noDataMessage.classList.add('hidden');
-            surveyDataTableBody.innerHTML = ''; // Clear existing data
+            surveyDataTableBody.innerHTML = ''; // 기존 데이터 지우기
             avgScoreGroup1.textContent = 'N/A';
             avgScoreGroup2.textContent = 'N/A';
 
@@ -340,20 +355,20 @@
                 dataErrorMessage.textContent = "Firebase 인증 준비 중입니다. 잠시 후 다시 시도해주세요.";
                 dataErrorMessage.classList.remove('hidden');
                 loadingMessage.classList.add('hidden');
-                console.log("Firebase not ready, cannot fetch data."); // Debugging log
+                console.log("Firebase not ready, cannot fetch data."); // 디버깅 로그
                 return;
             }
 
             try {
                 let q = collection(db, `artifacts/${appId}/public/data/cfq_responses`);
-                console.log(`Fetching data from collection: artifacts/${appId}/public/data/cfq_responses`); // Debugging log
+                console.log(`Fetching data from collection: artifacts/${appId}/public/data/cfq_responses`); // 디버깅 로그
 
                 if (startDate && endDate) {
                     const startTimestamp = new Date(startDate);
                     const endTimestamp = new Date(endDate);
-                    endTimestamp.setHours(23, 59, 59, 999); // Include the whole end day
+                    endTimestamp.setHours(23, 59, 59, 999); // 종료일의 마지막 시간까지 포함
                     q = query(q, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp));
-                    console.log(`Filtering data from ${startTimestamp} to ${endTimestamp}`); // Debugging log
+                    console.log(`Filtering data from ${startTimestamp} to ${endTimestamp}`); // 디버깅 로그
                 }
 
                 const querySnapshot = await getDocs(q);
@@ -364,7 +379,7 @@
                 if (querySnapshot.empty) {
                     noDataMessage.classList.remove('hidden');
                     loadingMessage.classList.add('hidden');
-                    console.log("No data found for the given criteria."); // Debugging log
+                    console.log("No data found for the given criteria."); // 디버깅 로그
                     return;
                 }
 
@@ -378,12 +393,12 @@
                         group2Scores.push(data.totalScore);
                     }
                 });
-                console.log(`Fetched ${allResponses.length} responses.`); // Debugging log
+                console.log(`Fetched ${allResponses.length} responses.`); // 디버깅 로그
 
-                // Sort responses by timestamp in memory (client-side)
+                // 응답을 타임스탬프 기준으로 메모리에서 정렬 (클라이언트 측)
                 allResponses.sort((a, b) => a.timestamp.toDate() - b.timestamp.toDate());
 
-                // Populate table
+                // 테이블 채우기
                 allResponses.forEach(response => {
                     const row = surveyDataTableBody.insertRow();
                     row.insertCell(0).textContent = response.id.substring(0, 8) + '...';
@@ -393,17 +408,17 @@
                     row.insertCell(4).textContent = response.userId ? response.userId.substring(0, 8) + '...' : 'N/A';
                 });
 
-                // Calculate and display averages
+                // 평균 계산 및 표시
                 const calculateAverage = (scores) => scores.length > 0 ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 'N/A';
 
                 avgScoreGroup1.textContent = calculateAverage(group1Scores);
                 avgScoreGroup2.textContent = calculateAverage(group2Scores);
-                console.log(`Average scores calculated: Group 1=${avgScoreGroup1.textContent}, Group 2=${avgScoreGroup2.textContent}`); // Debugging log
+                console.log(`Average scores calculated: Group 1=${avgScoreGroup1.textContent}, Group 2=${avgScoreGroup2.textContent}`); // 디버깅 로그
 
             } catch (e) {
                 dataErrorMessage.textContent = `데이터 로딩 중 오류 발생: ${e.message}`;
                 dataErrorMessage.classList.remove('hidden');
-                console.error("Error fetching documents from Firestore: ", e); // Debugging log
+                console.error("Error fetching documents from Firestore: ", e); // 디버깅 로그
             } finally {
                 loadingMessage.classList.add('hidden');
             }
@@ -412,63 +427,63 @@
         function showDashboard() {
             authSection.style.display = 'none';
             dashboardContent.classList.add('visible');
-            console.log("Dashboard visible."); // Debugging log
+            console.log("Dashboard visible."); // 디버깅 로그
 
-            // Set default filter dates to today
+            // 기본 필터 날짜를 오늘 날짜로 설정
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const day = String(today.getDate()).padStart(2, '0');
-            startDateInput.value = `${year}-${month}-01`; // Start of current month
-            endDateInput.value = `${year}-${month}-${day}`; // Today
+            startDateInput.value = `${year}-${month}-01`; // 현재 월의 시작일
+            endDateInput.value = `${year}-${month}-${day}`; // 오늘 날짜
 
-            fetchSurveyData(startDateInput.value, endDateInput.value); // Fetch data with default dates
+            fetchSurveyData(startDateInput.value, endDateInput.value); // 기본 날짜로 데이터 가져오기
         }
 
         function hideDashboard() {
             authSection.style.display = 'block';
             dashboardContent.classList.remove('visible');
-            adminPasswordInput.value = ''; // Clear password field
-            authMessage.textContent = ''; // Clear auth message
-            sessionStorage.removeItem('adminLoggedIn'); // Clear login state
-            console.log("Dashboard hidden, logged out."); // Debugging log
+            adminPasswordInput.value = ''; // 비밀번호 필드 초기화
+            authMessage.textContent = ''; // 인증 메시지 초기화
+            sessionStorage.removeItem('adminLoggedIn'); // 로그인 상태 초기화
+            console.log("Dashboard hidden, logged out."); // 디버깅 로그
         }
 
         loginButton.addEventListener('click', () => {
-            console.log("Login button clicked."); // Debugging log
+            console.log("Login button clicked."); // 디버깅 로그
             const enteredPassword = adminPasswordInput.value;
-            console.log(`Entered password: "${enteredPassword}"`); // Debugging: log entered password
-            console.log(`Expected password: "${ADMIN_PASSWORD}"`); // Debugging: log expected password
+            console.log(`Entered password: "${enteredPassword}"`); // 디버깅: 입력된 비밀번호 로깅
+            console.log(`Expected password: "${ADMIN_PASSWORD}"`); // 디버깅: 예상 비밀번호 로깅
 
             if (enteredPassword === ADMIN_PASSWORD) {
                 authMessage.textContent = '';
-                sessionStorage.setItem('adminLoggedIn', 'true'); // Persist login state
+                sessionStorage.setItem('adminLoggedIn', 'true'); // 로그인 상태 유지
                 showDashboard();
             } else {
                 authMessage.textContent = '잘못된 비밀번호입니다.';
-                console.log("Incorrect password entered."); // Debugging log
+                console.log("Incorrect password entered."); // 디버깅 로그
             }
         });
 
         logoutButton.addEventListener('click', async () => {
-            console.log("Logout button clicked."); // Debugging log
+            console.log("Logout button clicked."); // 디버깅 로그
             try {
-                await signOut(auth); // Sign out from Firebase Auth (if logged in)
+                await signOut(auth); // Firebase Auth에서 로그아웃
                 hideDashboard();
                 console.log("Logged out successfully.");
             } catch (error) {
-                console.error("Error during logout:", error); // Debugging log
+                console.error("Error during logout:", error); // 디버깅 로그
                 authMessage.textContent = `로그아웃 오류: ${error.message}`;
                 authMessage.style.display = 'block';
             }
         });
 
-        // Initial authentication attempt when page loads
+        // 페이지 로드 시 초기 인증 시도
         authenticateAndLoadData();
 
-        // Filter button event listener
+        // 필터 버튼 이벤트 리스너
         filterButton.addEventListener('click', () => {
-            console.log("Filter button clicked."); // Debugging log
+            console.log("Filter button clicked."); // 디버깅 로그
             fetchSurveyData(startDateInput.value, endDateInput.value);
         });
     </script>
