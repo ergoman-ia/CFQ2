@@ -83,12 +83,15 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            table-layout: fixed; /* Ensures columns respect specified widths */
         }
         .data-table th, .data-table td {
             border: 1px solid #e2e8f0;
             padding: 12px;
-            text-align: left;
+            text-align: center; /* Center align horizontally */
+            vertical-align: middle; /* Center align vertically */
             font-size: 0.95rem;
+            word-wrap: break-word; /* Prevents long text from overflowing */
         }
         .data-table th {
             background-color: #f7fafc;
@@ -172,9 +175,8 @@
             padding: 8px 12px;
             border: 1px solid #cbd5e0;
             border-radius: 5px;
-            /* Added for touch target size on desktop too */
-            min-height: 44px; /* Minimum touch target size */
-            box-sizing: border-box; /* Include padding in width/height */
+            min-height: 44px;
+            box-sizing: border-box;
         }
         .filter-section button {
             background-color: #6366f1;
@@ -184,10 +186,9 @@
             border: none;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            /* Added for touch target size on desktop too */
-            min-height: 44px; /* Minimum touch target size */
+            min-height: 44px;
             box-sizing: border-box;
-            font-size: 1rem; /* Ensure readable font size */
+            font-size: 1rem;
         }
         .filter-section button:hover {
             background-color: #4f46e5;
@@ -201,10 +202,9 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
             margin-left: 20px;
-            /* Added for touch target size on desktop too */
-            min-height: 44px; /* Minimum touch target size */
+            min-height: 44px;
             box-sizing: border-box;
-            font-size: 1rem; /* Ensure readable font size */
+            font-size: 1rem;
         }
         .logout-button:hover {
             background-color: #dc2626;
@@ -222,11 +222,10 @@
             border: none;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            margin-left: 10px; /* Space from filter buttons */
-            /* Added for touch target size on desktop too */
-            min-height: 44px; /* Minimum touch target size */
+            /* No margin-left here, as it will be in a new container */
+            min-height: 44px;
             box-sizing: border-box;
-            font-size: 1rem; /* Ensure readable font size */
+            font-size: 1rem;
         }
         .delete-button:hover {
             background-color: #b91c1c; /* Darker red on hover */
@@ -263,13 +262,12 @@
             border: none;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            margin: 0 5px; /* Space between buttons */
-            /* Added for touch target size */
+            margin: 0 5px;
             min-height: 44px;
             font-size: 1rem;
         }
         .modal-content button.cancel-button {
-            background-color: #6b7280; /* Gray for cancel */
+            background-color: #6b7280;
         }
         .modal-content button:hover {
             background-color: #322f87;
@@ -278,21 +276,28 @@
             background-color: #4b5563;
         }
 
+        /* New styles for table controls */
+        .table-controls {
+            display: flex;
+            justify-content: flex-end; /* Align to the right */
+            margin-bottom: 10px; /* Space between button and table */
+        }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
             }
             .auth-section input {
-                width: 100%; /* Make input full width on smaller screens */
+                width: 100%;
                 margin-bottom: 10px;
-                min-height: 44px; /* Ensure touch target size */
+                min-height: 44px;
                 box-sizing: border-box;
-                font-size: 1.1rem; /* Larger font for input */
+                font-size: 1.1rem;
             }
             .auth-section button {
                 width: 100%;
-                min-height: 48px; /* Slightly larger buttons for auth */
+                min-height: 48px;
                 font-size: 1.2rem;
             }
             .data-table th, .data-table td {
@@ -306,27 +311,32 @@
             .filter-section label,
             .filter-section input[type="date"],
             .filter-section button,
-            .logout-button,
-            .delete-button { /* Include delete button in responsive stacking */
+            .logout-button { /* Logout button stays in filter section */
                 width: 100%;
                 margin: 5px 0;
-                min-height: 48px; /* Ensure all buttons/inputs have good touch target */
-                font-size: 1.1rem; /* Larger font for all interactive elements */
+                min-height: 48px;
+                font-size: 1.1rem;
             }
-            .logout-button,
-            .delete-button {
+            .logout-button {
                 margin-left: 0;
             }
             /* Adjust checkbox and label for touch */
             #selectAllCheckbox {
-                transform: scale(1.3); /* Slightly larger checkbox */
+                transform: scale(1.3);
                 margin-right: 8px;
             }
             .data-table th:first-child, .data-table td:first-child {
-                padding: 12px 8px; /* Adjust padding for checkbox column */
+                padding: 12px 8px;
             }
             .row-checkbox {
-                transform: scale(1.3); /* Slightly larger individual checkboxes */
+                transform: scale(1.3);
+            }
+            .table-controls {
+                justify-content: center; /* Center button on small screens */
+            }
+            .delete-button {
+                width: 100%; /* Make delete button full width on small screens */
+                margin: 5px 0; /* Add vertical margin */
             }
         }
         @media (max-width: 480px) {
@@ -334,6 +344,26 @@
                 font-size: 1.5rem;
             }
             /* Further refinement for very small screens if needed */
+            .data-table th, .data-table td {
+                padding: 6px; /* Even smaller padding for very small screens */
+                font-size: 0.75rem; /* Smaller font size */
+            }
+            .data-table th:nth-child(1) { /* 응답 날짜 */
+                width: 25%; /* Give more space to date */
+            }
+            .data-table th:nth-child(2) { /* 조 */
+                width: 10%;
+            }
+            .data-table th:nth-child(3) { /* 개별 점수 */
+                width: 45%; /* Give more space to individual scores */
+            }
+            .data-table th:nth-child(4) { /* 총점 */
+                width: 10%;
+            }
+            .data-table th:nth-child(5) { /* 모두 선택 */
+                width: 10%; /* Keep this narrow */
+                text-align: right;
+            }
         }
     </style>
 </head>
@@ -355,7 +385,6 @@
                 <label for="endDate">종료 날짜:</label>
                 <input type="date" id="endDate">
                 <button id="filterButton">필터링</button>
-                <button id="deleteSelectedButton" class="delete-button">선택 항목 삭제</button>
                 <button id="logoutButton" class="logout-button">로그아웃</button>
             </div>
 
@@ -373,18 +402,22 @@
 
             <div class="data-section">
                 <h2>모든 설문 응답</h2>
+                <div class="table-controls">
+                    <button id="deleteSelectedButton" class="delete-button">선택 항목 삭제</button>
+                </div>
                 <p id="loadingMessage" class="loading-message">데이터를 불러오는 중...</p>
                 <p id="dataErrorMessage" class="error-message hidden"></p>
                 <table class="data-table" id="surveyDataTable">
                     <thead>
                         <tr>
-                            <th>
-                                <input type="checkbox" id="selectAllCheckbox"> 모두 선택
-                            </th> <!-- New checkbox column header with "Select All" -->
+                            <th style="width: 18%;">응답 날짜</th>
+                            <th style="width: 8%;">조</th>
+                            <th style="width: 50%;">개별 점수</th>
+                            <th style="width: 8%;">총점</th>
+                            <th style="width: 16%; text-align: center;">
+                                <input type="checkbox" id="selectAllCheckbox" style="vertical-align: middle;"> 모두 선택
+                            </th>
                             <th class="hidden-column">ID</th>
-                            <th>조</th>
-                            <th>총점</th>
-                            <th>응답 날짜</th>
                             <th class="hidden-column">사용자 ID</th>
                         </tr>
                     </thead>
@@ -536,29 +569,43 @@
                 allResponses.forEach(response => {
                     const row = surveyDataTableBody.insertRow();
 
+                    // 응답 날짜
+                    row.insertCell(0).textContent = response.timestamp.toDate().toLocaleString('ko-KR');
+                    // 조
+                    row.insertCell(1).textContent = response.group;
+
+                    // 개별 점수 (q1 ~ q15)
+                    const individualScores = [];
+                    for (let i = 1; i <= 15; i++) {
+                        // Ensure the key exists and is a number before pushing
+                        if (response.responses && typeof response.responses[`q${i}`] === 'number') {
+                            individualScores.push(response.responses[`q${i}`]);
+                        } else {
+                            individualScores.push('-'); // Or any placeholder for missing data
+                        }
+                    }
+                    row.insertCell(2).textContent = individualScores.join(', '); // Join with comma and space
+
+                    // 총점
+                    row.insertCell(3).textContent = response.totalScore;
+
                     // Checkbox cell
-                    const checkboxCell = row.insertCell(0);
+                    const checkboxCell = row.insertCell(4);
                     const checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
                     checkbox.className = 'row-checkbox';
                     checkbox.dataset.docId = response.id; // Store document ID in data attribute
                     checkbox.addEventListener('change', updateSelectAllCheckbox); // Add event listener for individual checkboxes
                     checkboxCell.appendChild(checkbox);
+                    // No need for checkboxCell.style.textAlign = 'right'; as the th is already centered.
 
                     // ID 셀 (숨김)
-                    const idCell = row.insertCell(1);
+                    const idCell = row.insertCell(5);
                     idCell.textContent = response.id.substring(0, 8) + '...';
                     idCell.classList.add('hidden-column');
 
-                    // 조
-                    row.insertCell(2).textContent = response.group;
-                    // 총점
-                    row.insertCell(3).textContent = response.totalScore;
-                    // 응답 날짜
-                    row.insertCell(4).textContent = response.timestamp.toDate().toLocaleString('ko-KR');
-
                     // 사용자 ID 셀 (숨김)
-                    const userIdCell = row.insertCell(5);
+                    const userIdCell = row.insertCell(6);
                     userIdCell.textContent = response.userId ? response.userId.substring(0, 8) + '...' : 'N/A';
                     userIdCell.classList.add('hidden-column');
                 });
@@ -707,9 +754,9 @@
                     fetchSurveyData(startDateInput.value, endDateInput.value);
                 } catch (error) {
                     console.error("Error deleting documents:", error);
-                    dataErrorMessage.textContent = `삭제 중 오류 발생: ${error.message}`;
+                    dataErrorMessage.textContent = `삭제 중 오류 발생: ${e.message}`;
                     dataErrorMessage.classList.remove('hidden');
-                    showModal(`삭제 중 오류 발생: ${error.message}`);
+                    showModal(`삭제 중 오류 발생: ${e.message}`);
                 } finally {
                     loadingMessage.classList.add('hidden');
                 }
