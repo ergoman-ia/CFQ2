@@ -314,27 +314,27 @@
                 margin-bottom: 0.8rem;
             }
             .radio-group {
-                flex-direction: row;
+                flex-direction: row; /* Ensure horizontal layout */
                 justify-content: space-around;
                 gap: 5px;
             }
             .radio-label {
-                min-width: 60px; /* Increased for easier tapping */
-                padding: 12px 5px; /* Increased padding for larger tap area */
-                font-size: 1rem; /* Increased font size for readability */
+                min-width: 50px; /* Reverted to original */
+                padding: 10px 5px; /* Reverted to original */
+                font-size: 1rem; /* Reverted to original */
             }
             .group-selection .radio-group-horizontal {
-                flex-direction: column;
-                gap: 10px;
+                flex-direction: row; /* Ensure horizontal layout */
+                gap: 20px; /* Keep original gap */
+                justify-content: center; /* Keep centered */
             }
             .group-selection .radio-group-horizontal label {
-                width: 100%;
-                justify-content: flex-start;
-                padding: 12px 20px; /* Increased padding for larger tap area */
-                font-size: 1.1rem; /* Slightly larger font for group labels */
+                /* Removed width: 100% and justify-content: flex-start */
+                padding: 10px 20px; /* Reverted to original */
+                font-size: 1.125rem; /* Reverted to original */
             }
             .group-selection .radio-group-horizontal input[type="radio"] {
-                margin-right: 10px;
+                margin-right: 8px; /* Reverted to original */
             }
         }
     </style>
@@ -346,11 +346,11 @@
             다음 질문은 누구나 때때로 저지르는 사소한 실수에 관한 것입니다. <strong>지난 6개월</strong> 동안의 경험을 가장 잘 반영하는 답변을 선택해 주세요.
         </p>
         <div class="score-legend">
-            <span>결코 없음 (0)</span>
-            <span>매우 드물게 (1)</span>
-            <span>가끔 (2)</span>
-            <span>꽤 자주 (3)</span>
-            <span>매우 자주 (4)</span>
+            <span>결코 없음<br>(0)</span>
+            <span>매우 드물게<br>(1)</span>
+            <span>가끔<br>(2)</span>
+            <span>꽤 자주<br>(3)</span>
+            <span>매우 자주<br>(4)</span>
         </div>
     </div>
 
