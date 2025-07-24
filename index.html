@@ -325,16 +325,18 @@
             }
             .group-selection .radio-group-horizontal {
                 flex-direction: row; /* Ensure horizontal layout */
-                gap: 20px; /* Keep original gap */
+                gap: 10px; /* Reduced gap for compactness */
                 justify-content: center; /* Keep centered */
             }
             .group-selection .radio-group-horizontal label {
-                /* Removed width: 100% and justify-content: flex-start */
-                padding: 10px 20px; /* Reverted to original */
-                font-size: 1.125rem; /* Reverted to original */
+                padding: 10px 10px; /* Reduced horizontal padding for compactness */
+                font-size: 1rem; /* Slightly smaller font for compactness */
+                flex-shrink: 1; /* Allow them to shrink more */
+                flex-grow: 0; /* Prevent them from growing unnecessarily */
+                white-space: nowrap; /* Prevent text wrapping inside the label */
             }
             .group-selection .radio-group-horizontal input[type="radio"] {
-                margin-right: 8px; /* Reverted to original */
+                margin-right: 5px; /* Reduced margin for compactness */
             }
         }
     </style>
@@ -343,7 +345,7 @@
     <div class="header-section">
         <h1>인지실패 설문지 (CFQ 2.0)</h1>
         <p>
-            다음 질문은 누구나 때때로 저지르는 사소한 실수에 관한 것입니다. <strong>지난 6개월</strong> 동안의 경험을 가장 잘 반영하는 답변을 선택해 주세요.
+            다음 질문은 누구나 때때로 저지르는 사소한 실수에 관한 것입니다.<br> <strong>지난 6개월</strong> 동안의 경험을 가장 잘 반영하는 답변을 선택해 주세요.
         </p>
         <div class="score-legend">
             <span>결코 없음<br>(0)</span>
