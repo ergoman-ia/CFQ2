@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 대시보드</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            color: #1a202c;
+            margin-bottom: 20px;
+        }
+
+        .auth-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #cbd5e0;
+            border-radius: 10px;
+            background-color: #e2e8f0;
+        }
+
+        .auth-section input {
+            padding: 10px 15px;
+            border: 1px solid #a0aec0;
+            border-radius: 8px;
+            margin-right: 10px;
+            width: 200px;
+        }
+
+        .auth-section button {
+            background-color: #4c51bf;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .auth-section button:hover {
+            background-color: #322f87;
+        }
+
+        .dashboard-content {
+            display: none;
+        }
+
+        .dashboard-content.visible {
+            display: block;
+        }
+
+        .data-section {
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 20px;
+        }
+
+        .data-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            table-layout: fixed;
+            /* Ensures columns respect specified widths */
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: center;
+            /* Center align horizontally */
+            vertical-align: middle;
+            /* Center align vertically */
+            font-size: 0.95rem;
+            word-wrap: break-word;
+            /* Prevents long text from overflowing */
+        }
+
+        .data-table th {
+            background-color: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background-color: #fdfdfd;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #ebf8ff;
+        }
+
+        .loading-message,
+        .error-message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #4a5568;
+        }
+
+        .error-message {
+            color: #dc2626;
+        }
+
+        /* Modified average scores section for horizontal layout */
+        .average-scores {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            background-color: #ecfdf5;
+            display: flex;
+            /* Use flexbox for horizontal layout */
+            justify-content: space-around;
+            /* Distribute items evenly */
+            align-items: center;
+            flex-wrap: wrap;
+            /* Allow wrapping on smaller screens */
+            gap: 20px;
+            /* Space between items */
+        }
+
+        .average-scores .score-group {
+            text-align: center;
+            flex: 1;
+            /* Allow items to grow and shrink */
+            min-width: 200px;
+            /* Minimum width for each score group */
+        }
+
+        .average-scores p {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 5px;
+            /* Reduced margin for tighter display */
+        }
+
+        .average-scores span {
+            font-weight: 700;
+            color: #047857;
+            font-size: 1.69rem;
+            /* Increased by 30% from 1.3rem (1.3 * 1.3 = 1.69) */
+        }
+
+        .average-scores .separator {
+            width: 1px;
+            /* Vertical line */
+            background-color: #a7f3d0;
+            /* Same color as border */
+            height: 80px;
+            /* Height of the separator */
+            margin: 0 20px;
+            /* Space around the separator */
+        }
+
+        /* Hide separator on small screens */
+        @media (max-width: 640px) {
+            .average-scores .separator {
+                display: none;
+            }
+
+            .average-scores {
+                flex-direction: column;
+                /* Stack vertically on small screens */
+            }
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-section label {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .filter-section input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+            min-height: 44px;
+            box-sizing: border-box;
+        }
+
+        .filter-section button {
+            background-color: #6366f1;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            min-height: 44px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .filter-section button:hover {
+            background-color: #4f46e5;
+        }
+
+        .logout-button {
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 20px;
+            min-height: 44px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .logout-button:hover {
+            background-color: #dc2626;
+        }
+
+        /* Style to hide columns */
+        .hidden-column {
+            display: none;
+        }
+
+        /* Delete button style */
+        .delete-button {
+            background-color: #dc2626;
+            /* Red color */
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            /* No margin-left here, as it will be in a new container */
+            min-height: 44px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .delete-button:hover {
+            background-color: #b91c1c;
+            /* Darker red on hover */
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            width: 300px;
+        }
+
+        .modal-content p {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 16px;
+        }
+
+        .modal-content button {
+            background-color: #4c51bf;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 0 5px;
+            min-height: 44px;
+            font-size: 1rem;
+        }
+
+        .modal-content button.cancel-button {
+            background-color: #6b7280;
+        }
+
+        .modal-content button:hover {
+            background-color: #322f87;
+        }
+
+        .modal-content button.cancel-button:hover {
+            background-color: #4b5563;
+        }
+
+        /* New styles for table controls */
+        .table-controls {
+            display: flex;
+            justify-content: flex-end;
+            /* Align to the right */
+            margin-bottom: 10px;
+            /* Space between button and table */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .auth-section input {
+                width: 100%;
+                margin-bottom: 10px;
+                min-height: 44px;
+                box-sizing: border-box;
+                font-size: 1.1rem;
+            }
+
+            .auth-section button {
+                width: 100%;
+                min-height: 48px;
+                font-size: 1.2rem;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-section label,
+            .filter-section input[type="date"],
+            .filter-section button,
+            .logout-button {
+                /* Logout button stays in filter section */
+                width: 100%;
+                margin: 5px 0;
+                min-height: 48px;
+                font-size: 1.1rem;
+            }
+
+            .logout-button {
+                margin-left: 0;
+            }
+
+            /* Adjust checkbox and label for touch */
+            #selectAllCheckbox {
+                transform: scale(1.3);
+                margin-right: 8px;
+            }
+
+            .data-table th:first-child,
+            .data-table td:first-child {
+                padding: 12px 8px;
+            }
+
+            .row-checkbox {
+                transform: scale(1.3);
+            }
+
+            .table-controls {
+                justify-content: center;
+                /* Center button on small screens */
+            }
+
+            .delete-button {
+                width: 100%;
+                /* Make delete button full width on small screens */
+                margin: 5px 0;
+                /* Add vertical margin */
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            /* Further refinement for very small screens if needed */
+            .data-table th,
+            .data-table td {
+                padding: 6px;
+                /* Even smaller padding for very small screens */
+                font-size: 0.75rem;
+                /* Smaller font size */
+            }
+
+            .data-table th:nth-child(1) {
+                /* 응답 날짜 */
+                width: 30%;
+                /* Give more space to date */
+            }
+
+            .data-table th:nth-child(2) {
+                /* 조 */
+                width: 10%;
+            }
+
+            .data-table th:nth-child(3) {
+                /* 개별 점수 */
+                width: 40%;
+                /* Give more space to individual scores */
+            }
+
+            .data-table th:nth-child(4) {
+                /* 총점 */
+                width: 10%;
+            }
+
+            .data-table th:nth-child(5) {
+                /* 모두 선택 */
+                width: 10%;
+                /* Keep this narrow */
+                text-align: right;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>관리자 대시보드</h1>
+
+        <div class="auth-section" id="authSection">
+            <p>관리자 비밀번호를 입력하세요:</p>
+            <input type="password" id="adminPassword" placeholder="비밀번호">
+            <button id="loginButton">로그인</button>
+            <p id="authMessage" style="color: red; margin-top: 10px;"></p>
+        </div>
+
+        <div class="dashboard-content" id="dashboardContent">
+            <div class="filter-section">
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <label>시작:</label>
+                    <input type="date" id="startDate">
+                    <select id="startHour"
+                        style="padding: 8px; border-radius: 5px; border: 1px solid #cbd5e0;"></select>
+                    <span>시</span>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:5px; margin-left: 10px;">
+                    <label>종료:</label>
+                    <input type="date" id="endDate">
+                    <select id="endHour" style="padding: 8px; border-radius: 5px; border: 1px solid #cbd5e0;"></select>
+                    <span>시</span>
+                </div>
+                <button id="filterButton" style="margin-left: 10px;">필터링</button>
+                <button id="logoutButton" class="logout-button">로그아웃</button>
+            </div>
+
+            <div class="average-scores">
+                <div class="score-group">
+                    <p>1조 평균 인지 실패 점수(최악 60점) :</p>
+                    <span id="avgScoreGroup1">N/A</span>
+                </div>
+                <div class="separator"></div> <!-- Separator -->
+                <div class="score-group">
+                    <p>2조 평균 인지 실패 점수(최악 60점) :</p>
+                    <span id="avgScoreGroup2">N/A</span>
+                </div>
+            </div>
+
+            <div class="data-section">
+                <h2>모든 설문 응답</h2>
+                <div class="table-controls">
+                    <button id="deleteSelectedButton" class="delete-button">선택 항목 삭제</button>
+                </div>
+                <p id="loadingMessage" class="loading-message">데이터를 불러오는 중...</p>
+                <p id="dataErrorMessage" class="error-message hidden"></p>
+                <table class="data-table" id="surveyDataTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">응답 날짜</th>
+                            <th style="width: 8%;">조</th>
+                            <th style="width: 45%;">개별 점수</th>
+                            <th style="width: 8%;">총점</th>
+                            <th style="width: 14%; text-align: center;">
+                                <input type="checkbox" id="selectAllCheckbox" style="vertical-align: middle;"> 모두 선택
+                            </th>
+                            <th class="hidden-column">ID</th>
+                            <th class="hidden-column">사용자 ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+                <p id="noDataMessage" class="loading-message hidden">해당 기간의 데이터가 없습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        console.log("Admin Dashboard script started.");
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, where, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase 프로젝트 설정:
+        // *** 여기에 사용자님의 Firebase 프로젝트 설정 코드를 붙여넣으세요. ***
+        // 예시:
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYHBQ7S0cxvgcCbUL2tSiy997l9w-RPqM",
+            authDomain: "cfq2-12553.firebaseapp.com",
+            projectId: "cfq2-12553",
+            storageBucket: "cfq2-12553.firebasestorage.app",
+            messagingSenderId: "790402222541",
+            appId: "1:790402222541:web:9df56ea1ec7c3d25d55c84"
+            // measurementId: "YOUR_MEASUREMENT_ID"
+        };
+        // *** 위 예시를 지우고 실제 Firebase 설정을 붙여넣으세요. ***
+
+        // Firebase 설정이 제대로 되었는지 확인 (디버깅용)
+        console.log("Firebase config loaded:", firebaseConfig);
+        if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
+            console.error("Firebase config is empty or incomplete. Please update firebaseConfig with your actual Firebase project configuration.");
+            alert("Firebase 설정이 비어있거나 불완전합니다. Firebase 프로젝트 설정을 코드에 추가해야 합니다.");
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        console.log("Firebase initialized in admin script.");
+
+        const projectId = firebaseConfig.projectId || 'default-project-id';
+        const ADMIN_PASSWORD = "admin"; // 데모용 비밀번호입니다. 실제 환경에서는 절대 이 방식을 사용하지 마세요!
+
+        const authSection = document.getElementById('authSection');
+        const adminPasswordInput = document.getElementById('adminPassword');
+        const loginButton = document.getElementById('loginButton');
+        const authMessage = document.getElementById('authMessage');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const dataErrorMessage = document.getElementById('dataErrorMessage');
+        const surveyDataTableBody = document.querySelector('#surveyDataTable tbody');
+        const avgScoreGroup1 = document.getElementById('avgScoreGroup1');
+        const avgScoreGroup2 = document.getElementById('avgScoreGroup2');
+        const noDataMessage = document.getElementById('noDataMessage');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const filterButton = document.getElementById('filterButton');
+        const deleteSelectedButton = document.getElementById('deleteSelectedButton');
+        const logoutButton = document.getElementById('logoutButton');
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox'); // "Select All" checkbox reference
+
+        console.log("Admin Dashboard DOM elements acquired.");
+
+        function populateHourSelect(selectId) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = ''; // 초기화
+            for (let i = 0; i < 24; i++) {
+                const option = document.createElement('option');
+                const hour = String(i).padStart(2, '0'); // 0 -> "00"
+                option.value = hour;
+                option.textContent = `${hour}`;
+                select.appendChild(option);
+            }
+        }
+
+        let isAuthReady = false;
+
+        async function authenticateAndLoadData() {
+            try {
+                console.log("Attempting Firebase authentication for admin dashboard.");
+                if (Object.keys(firebaseConfig).length > 0 && firebaseConfig.projectId) {
+                    await signInAnonymously(auth);
+                    isAuthReady = true;
+                    console.log("Firebase authenticated for admin dashboard. Current User:", auth.currentUser);
+                    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                        console.log("Admin already logged in via session storage. Showing dashboard.");
+                        showDashboard();
+                    }
+                } else {
+                    console.error("Firebase config is missing or incomplete. Authentication skipped.");
+                    dataErrorMessage.textContent = "Firebase 설정이 없어 인증을 건너뛰었습니다. 콘솔을 확인하세요.";
+                    dataErrorMessage.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Firebase authentication error in admin:", error);
+                dataErrorMessage.textContent = `인증 오류: ${error.message}`;
+                dataErrorMessage.classList.remove('hidden');
+            }
+        }
+
+        async function fetchSurveyData() {
+            loadingMessage.classList.remove('hidden');
+            dataErrorMessage.classList.add('hidden');
+            noDataMessage.classList.add('hidden');
+            surveyDataTableBody.innerHTML = '';
+            avgScoreGroup1.textContent = 'N/A';
+            avgScoreGroup2.textContent = 'N/A';
+            selectAllCheckbox.checked = false; // Reset "Select All" checkbox on new data load
+
+            if (!isAuthReady) {
+                dataErrorMessage.textContent = "Firebase 인증 준비 중입니다. 잠시 후 다시 시도해주세요.";
+                dataErrorMessage.classList.remove('hidden');
+                loadingMessage.classList.add('hidden');
+                console.log("Firebase not ready, cannot fetch data.");
+                return;
+            }
+
+            const sDateVal = document.getElementById('startDate').value;
+            const sHourVal = document.getElementById('startHour').value;
+            const eDateVal = document.getElementById('endDate').value;
+            const eHourVal = document.getElementById('endHour').value;
+
+            try {
+                let q = collection(db, `artifacts/${projectId}/public/data/cfq_responses`);
+
+                // [수정] 날짜와 시간을 합쳐서 Date 객체 생성
+                if (sDateVal && eDateVal) {
+                    // 시작일시: 선택한 날짜 + 선택한 시간 + ":00" (분)
+                    const startTimestamp = new Date(`${sDateVal}T${sHourVal}:00`);
+
+                    // 종료일시: 선택한 날짜 + 선택한 시간 + ":59:59.999" (해당 시간의 끝까지 꽉 채움)
+                    // 예: 14시를 선택하면 14시 59분 59초까지 조회
+                    const endTimestamp = new Date(`${eDateVal}T${eHourVal}:59:59.999`);
+
+                    q = query(q, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp));
+                    console.log(`Filtering from ${startTimestamp.toLocaleString()} to ${endTimestamp.toLocaleString()}`);
+                }
+
+                const querySnapshot = await getDocs(q);
+                const allResponses = [];
+                let group1Scores = [];
+                let group2Scores = [];
+
+                if (querySnapshot.empty) {
+                    noDataMessage.classList.remove('hidden');
+                    loadingMessage.classList.add('hidden');
+                    console.log("No data found for the given criteria.");
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    allResponses.push({ id: doc.id, ...data });
+
+                    if (data.group === '1조' && typeof data.totalScore === 'number') {
+                        group1Scores.push(data.totalScore);
+                    } else if (data.group === '2조' && typeof data.totalScore === 'number') {
+                        group2Scores.push(data.totalScore);
+                    }
+                });
+                console.log(`Fetched ${allResponses.length} responses.`);
+
+                allResponses.sort((a, b) => a.timestamp.toDate() - b.timestamp.toDate());
+
+                allResponses.forEach(response => {
+                    const row = surveyDataTableBody.insertRow();
+
+                    // 응답 날짜
+                    row.insertCell(0).textContent = response.timestamp.toDate().toLocaleString('ko-KR');
+                    // 조
+                    row.insertCell(1).textContent = response.group;
+
+                    // 개별 점수 (q1 ~ q15)
+                    const individualScores = [];
+                    for (let i = 1; i <= 15; i++) {
+                        // Ensure the key exists and is a number before pushing
+                        if (response.responses && typeof response.responses[`q${i}`] === 'number') {
+                            individualScores.push(response.responses[`q${i}`]);
+                        } else {
+                            individualScores.push('-'); // Or any placeholder for missing data
+                        }
+                    }
+                    row.insertCell(2).textContent = individualScores.join(', '); // Join with comma and space
+
+                    // 총점
+                    row.insertCell(3).textContent = response.totalScore;
+
+                    // Checkbox cell
+                    const checkboxCell = row.insertCell(4);
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'row-checkbox';
+                    checkbox.dataset.docId = response.id; // Store document ID in data attribute
+                    checkbox.addEventListener('change', updateSelectAllCheckbox); // Add event listener for individual checkboxes
+                    checkboxCell.appendChild(checkbox);
+                    // No need for checkboxCell.style.textAlign = 'right'; as the th is already centered.
+
+                    // ID 셀 (숨김)
+                    const idCell = row.insertCell(5);
+                    idCell.textContent = response.id.substring(0, 8) + '...';
+                    idCell.classList.add('hidden-column');
+
+                    // 사용자 ID 셀 (숨김)
+                    const userIdCell = row.insertCell(6);
+                    userIdCell.textContent = response.userId ? response.userId.substring(0, 8) + '...' : 'N/A';
+                    userIdCell.classList.add('hidden-column');
+                });
+
+                const calculateAverage = (scores) => scores.length > 0 ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 'N/A';
+
+                // Update textContent to include count of participants
+                avgScoreGroup1.textContent = `${calculateAverage(group1Scores)} (${group1Scores.length}명)`;
+                avgScoreGroup2.textContent = `${calculateAverage(group2Scores)} (${group2Scores.length}명)`;
+                console.log(`Average scores calculated: Group 1=${avgScoreGroup1.textContent}, Group 2=${avgScoreGroup2.textContent}`);
+
+            } catch (e) {
+                dataErrorMessage.textContent = `데이터 로딩 중 오류 발생: ${e.message}`;
+                dataErrorMessage.classList.remove('hidden');
+                console.error("Error fetching documents from Firestore: ", e);
+            } finally {
+                loadingMessage.classList.add('hidden');
+            }
+        }
+
+        function showDashboard() {
+            authSection.style.display = 'none';
+            dashboardContent.classList.add('visible');
+            console.log("Dashboard visible.");
+
+            populateHourSelect('startHour');
+            populateHourSelect('endHour');
+
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('startDate').value = `${year}-${month}-01`; // 이달 1일
+            document.getElementById('startHour').value = "00";                  // 00시
+
+            document.getElementById('endDate').value = `${year}-${month}-${day}`; // 오늘
+            document.getElementById('endHour').value = "23";                      // 23시
+
+            fetchSurveyData();
+        }
+
+        function hideDashboard() {
+            authSection.style.display = 'block';
+            dashboardContent.classList.remove('visible');
+            adminPasswordInput.value = '';
+            authMessage.textContent = '';
+            sessionStorage.removeItem('adminLoggedIn');
+            console.log("Dashboard hidden, logged out.");
+        }
+
+        // Function to show a custom modal message
+        function showModal(message, onConfirm = null, onCancel = null) {
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = 'modal-overlay';
+            modalOverlay.innerHTML = `
+                <div class="modal-content">
+                    <p>${message}</p>
+                    <button id="modalConfirmButton">확인</button>
+                    ${onCancel ? '<button id="modalCancelButton" class="cancel-button">취소</button>' : ''}
+                </div>
+            `;
+            document.body.appendChild(modalOverlay);
+
+            document.getElementById('modalConfirmButton').addEventListener('click', () => {
+                modalOverlay.remove();
+                if (onConfirm) onConfirm();
+            });
+
+            if (onCancel) {
+                document.getElementById('modalCancelButton').addEventListener('click', () => {
+                    modalOverlay.remove();
+                    if (onCancel) onCancel();
+                });
+            }
+        }
+
+        loginButton.addEventListener('click', () => {
+            console.log("Login button clicked.");
+            const enteredPassword = adminPasswordInput.value;
+            console.log(`Entered password: "${enteredPassword}"`);
+            console.log(`Expected password: "${ADMIN_PASSWORD}"`);
+
+            if (enteredPassword === ADMIN_PASSWORD) {
+                authMessage.textContent = '';
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                showDashboard();
+            } else {
+                authMessage.textContent = '잘못된 비밀번호입니다.';
+                console.log("Incorrect password entered.");
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            console.log("Logout button clicked.");
+            try {
+                await signOut(auth);
+                hideDashboard();
+                console.log("Logged out successfully.");
+            } catch (error) {
+                console.error("Error during logout:", error);
+                authMessage.textContent = `로그아웃 오류: ${error.message}`;
+                authMessage.style.display = 'block';
+            }
+        });
+
+        // Event listener for "Select All" checkbox
+        selectAllCheckbox.addEventListener('change', (event) => {
+            console.log("Select All checkbox changed.");
+            const isChecked = event.target.checked;
+            document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        });
+
+        // Function to update "Select All" checkbox based on individual checkboxes
+        function updateSelectAllCheckbox() {
+            const allCheckboxes = document.querySelectorAll('.row-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            console.log(`Individual checkbox changed. Total: ${allCheckboxes.length}, Checked: ${checkedCheckboxes.length}`);
+
+            if (allCheckboxes.length > 0 && allCheckboxes.length === checkedCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.checked = false;
+            }
+        }
+
+        // Event listener for Delete Selected button
+        deleteSelectedButton.addEventListener('click', () => {
+            console.log("Delete Selected button clicked.");
+            const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            const docIdsToDelete = Array.from(selectedCheckboxes).map(cb => cb.dataset.docId);
+
+            if (docIdsToDelete.length === 0) {
+                showModal("삭제할 항목을 선택해주세요.");
+                return;
+            }
+
+            showModal(`${docIdsToDelete.length}개의 항목을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`, async () => {
+                loadingMessage.classList.remove('hidden');
+                dataErrorMessage.classList.add('hidden');
+                try {
+                    const deletePromises = docIdsToDelete.map(docId => {
+                        const docRef = doc(db, `artifacts/${projectId}/public/data/cfq_responses`, docId);
+                        console.log(`Attempting to delete document: ${docId}`);
+                        return deleteDoc(docRef);
+                    });
+                    await Promise.all(deletePromises);
+                    console.log("Selected documents deleted successfully.");
+                    showModal("선택된 항목이 성공적으로 삭제되었습니다.");
+                    // Re-fetch data to update the table
+                    fetchSurveyData(startDateInput.value, endDateInput.value);
+                } catch (error) {
+                    console.error("Error deleting documents:", error);
+                    dataErrorMessage.textContent = `삭제 중 오류 발생: ${e.message}`;
+                    dataErrorMessage.classList.remove('hidden');
+                    showModal(`삭제 중 오류 발생: ${e.message}`);
+                } finally {
+                    loadingMessage.classList.add('hidden');
+                }
+            }, () => {
+                console.log("Deletion cancelled by user.");
+            });
+        });
+
+        authenticateAndLoadData();
+
+        filterButton.addEventListener('click', () => {
+            console.log("Filter button clicked.");
+            fetchSurveyData();
+        });
+    </script>
+</body>
+
+</html>
