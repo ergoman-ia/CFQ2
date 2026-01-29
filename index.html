@@ -805,19 +805,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase 프로젝트 설정:
-        // *** 여기에 사용자님의 Firebase 프로젝트 설정 코드를 붙여넣으세요. ***
-        // 예시:
- const firebaseConfig = {
-  apiKey: "AIzaSyDYHBQ7S0cxvgcCbUL2tSiy997l9w-RPqM",
-  authDomain: "cfq2-12553.firebaseapp.com",
-  projectId: "cfq2-12553",
-  storageBucket: "cfq2-12553.firebasestorage.app",
-  messagingSenderId: "790402222541",
-  appId: "1:790402222541:web:9df56ea1ec7c3d25d55c84"
-             // measurementId: "YOUR_MEASUREMENT_ID" // Google Analytics를 사용하지 않으면 필요 없습니다.
-        };
-        // *** 위 예시를 지우고 실제 Firebase 설정을 붙여넣으세요. ***
+        import { FIREBASE_CONFIG } from "./secrets.js";
 
         // Firebase 설정이 제대로 되었는지 확인 (디버깅용)
         console.log("Firebase config loaded:", firebaseConfig);
@@ -826,7 +814,7 @@
             alert("Firebase 설정이 비어있거나 불완전합니다. Firebase 프로젝트 설정을 코드에 추가해야 합니다.");
         }
 
-        const app = initializeApp(firebaseConfig);
+        const app = initializeApp(FIREBASE_CONFIG);
         const db = getFirestore(app);
         const auth = getAuth(app);
         console.log("Firebase initialized in survey script.");
@@ -975,3 +963,4 @@
     </script>
 </body>
 </html>
+
