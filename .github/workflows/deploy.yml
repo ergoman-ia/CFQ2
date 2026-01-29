@@ -1,0 +1,38 @@
+name: Deploy User File to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # main 브랜치에 푸시될 때만 실행
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create secrets.js
+        run: |
+          echo 'export const FIREBASE_CONFIG = ${{ secrets.FIREBASE_CONFIG }};' >> secrets.js
+
+      - name: inject Admin Password directly
+        run: |
+          sed -i "s|__ADMIN_PASSWORD__|${{ secrets.ADMIN_PASSWORD }}|g" index.html
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.' # 현재 폴더 전체를 업로드
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
