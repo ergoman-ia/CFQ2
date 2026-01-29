@@ -25,11 +25,9 @@ jobs:
         run: |
           echo 'export const FIREBASE_CONFIG = ${{ secrets.FIREBASE_CONFIG }};' >> secrets.js
 
-      - name: inject Admin Password directly
+      - name: Inject Admin Password directly
         run: |
-          sed -i "s|__ADMIN_PASSWORD__|${{ secrets.ADMIN_PASSWORD }}|g" index.html
-        env:
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          sed -i 's|CHANGE_THIS_PASSWORD_GITHUB|${{ secrets.ADMIN_PASSWORD }}|g' admin_dashboard.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
