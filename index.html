@@ -51,12 +51,39 @@
             font-weight: 700;
         }
 
+        .score-legend-bar {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            transition: box-shadow 0.2s;
+        }
+
+        .score-legend-bar.is-sticky {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            /* ← 수정: body padding 20px × 2 */
+            max-width: 800px;
+            border-radius: 0 0 10px 10px;
+            z-index: 999;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+            padding: 10px 30px;
+        }
+
+        #scoreLegendAnchor.placeholder-active {
+            display: block;
+            /* 높이는 JS에서 동적으로 설정 */
+        }
+
         .score-legend {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid #e0e0e0;
             font-weight: 600;
             color: #4a5568;
         }
@@ -75,7 +102,7 @@
             max-width: 800px;
             width: 100%;
             border: 1px solid #e0e0e0;
-            margin-top: 250px;
+            margin-top: 130px;
             margin-bottom: 20px;
         }
 
@@ -119,6 +146,13 @@
         }
 
         .group-selection .radio-group-horizontal input[type="radio"]:checked+label {
+            background-color: #4c51bf;
+            color: white;
+            border-color: #4c51bf;
+            box-shadow: 0 4px 10px rgba(76, 81, 191, 0.2);
+        }
+
+        .group-selection .radio-group-horizontal label:has(input[type="radio"]:checked) {
             background-color: #4c51bf;
             color: white;
             border-color: #4c51bf;
@@ -355,7 +389,7 @@
             }
 
             .container {
-                margin-top: 220px;
+                margin-top: 110px;
                 padding: 20px;
             }
 
@@ -412,30 +446,16 @@
                 margin-right: 5px;
                 /* Reduced margin for compactness */
             }
-
-            .group-selection .radio-group-horizontal label:has(input[type="radio"]:checked) {
-                background-color: #4c51bf;
-                color: white;
-                border-color: #4c51bf;
-                box-shadow: 0 4px 10px rgba(76, 81, 191, 0.2);
-            }
         }
     </style>
 </head>
 
 <body>
-    <div class="header-section">
+    <div class="header-section" id="mainHeader">
         <h1>인지실패 설문지 (CFQ 2.0)</h1>
         <p>
             다음 질문은 누구나 때때로 저지르는 사소한 실수에 관한 것입니다. <strong>지난 6개월</strong> 동안의 경험을 가장 잘 반영하는 답변을 선택해 주세요.
         </p>
-        <div class="score-legend">
-            <span>결코 없음<br>(0)</span>
-            <span>매우 드물게<br>(1)</span>
-            <span>가끔<br>(2)</span>
-            <span>꽤 자주<br>(3)</span>
-            <span>매우 자주<br>(4)</span>
-        </div>
     </div>
 
     <div class="container">
@@ -474,7 +494,18 @@
             <div class="group-selection">
                 <p>만 나이를 입력해 주세요:</p>
                 <input type="number" name="age" min="1" max="120" placeholder="예: 25" inputmode="numeric" style="padding:10px; border-radius:8px; border:1px solid #a0aec0; 
-               font-size:1rem; width:120px; text-align:center;" required>
+               font-size: 16px; width:120px; text-align:center;" required>
+            </div>
+
+            <div id="scoreLegendAnchor"></div> <!-- 고정 시작 기준점 -->
+            <div class="score-legend-bar" id="scoreLegendBar">
+                <div class="score-legend">
+                    <span>결코 없음<br>(0)</span>
+                    <span>매우 드물게<br>(1)</span>
+                    <span>가끔<br>(2)</span>
+                    <span>꽤 자주<br>(3)</span>
+                    <span>매우 자주<br>(4)</span>
+                </div>
             </div>
 
             <!-- Question 1 -->
@@ -1071,6 +1102,39 @@
                 console.log("Form submission process finished.");
             }
         });
+
+        // ── 점수 가이드 sticky 처리 ──────────────────────────
+        const mainHeader = document.getElementById('mainHeader');
+        const scoreLegendBar = document.getElementById('scoreLegendBar');
+        const scoreLegendAnchor = document.getElementById('scoreLegendAnchor');
+
+        function updateStickyLegend() {
+            const headerHeight = mainHeader.offsetHeight + 20; // 헤더 높이 + top:20px
+            const anchorTop = scoreLegendAnchor.getBoundingClientRect().top;
+
+            if (anchorTop <= headerHeight) {
+                // 고정 모드 진입
+                if (!scoreLegendBar.classList.contains('is-sticky')) {
+                    // placeholder로 높이 확보 (레이아웃 점프 방지)
+                    scoreLegendAnchor.style.height = scoreLegendBar.offsetHeight + 'px';
+                    scoreLegendAnchor.classList.add('placeholder-active');
+                    scoreLegendBar.classList.add('is-sticky');
+                    scoreLegendBar.style.top = headerHeight + 'px';
+                }
+            } else {
+                // 고정 해제
+                if (scoreLegendBar.classList.contains('is-sticky')) {
+                    scoreLegendBar.classList.remove('is-sticky');
+                    scoreLegendAnchor.classList.remove('placeholder-active');
+                    scoreLegendAnchor.style.height = '0';
+                    scoreLegendBar.style.top = '';
+                }
+            }
+        }
+
+        window.addEventListener('scroll', updateStickyLegend, { passive: true });
+        window.addEventListener('resize', updateStickyLegend);
+        // ────────────────────────────────────────────────────
     </script>
 </body>
 
