@@ -500,13 +500,17 @@
 
             <div class="average-scores">
                 <div class="score-group">
-                    <p>1조 평균 인지 실패 점수(최악 60점) :</p>
+                    <p>1조 평균 인지 실패 점수(최악 60점)</p>
                     <span id="avgScoreGroup1">N/A</span>
+                    <p style="margin-top:10px;">평균 연령</p>
+                    <span id="avgAgeGroup1" style="font-size:1.3rem;">N/A</span>
                 </div>
-                <div class="separator"></div> <!-- Separator -->
+                <div class="separator"></div>
                 <div class="score-group">
-                    <p>2조 평균 인지 실패 점수(최악 60점) :</p>
+                    <p>2조 평균 인지 실패 점수(최악 60점)</p>
                     <span id="avgScoreGroup2">N/A</span>
+                    <p style="margin-top:10px;">평균 연령</p>
+                    <span id="avgAgeGroup2" style="font-size:1.3rem;">N/A</span>
                 </div>
             </div>
 
@@ -634,6 +638,9 @@
             avgScoreGroup2.textContent = 'N/A';
             selectAllCheckbox.checked = false; // Reset "Select All" checkbox on new data load
 
+            document.getElementById('avgAgeGroup1').textContent = 'N/A';
+            document.getElementById('avgAgeGroup2').textContent = 'N/A';
+
             if (!isAuthReady) {
                 dataErrorMessage.textContent = "Firebase 인증 준비 중입니다. 잠시 후 다시 시도해주세요.";
                 dataErrorMessage.classList.remove('hidden');
@@ -667,11 +674,14 @@
                 const allResponses = [];
                 let group1Scores = [];
                 let group2Scores = [];
+                let group1Ages = [];   // 추가
+                let group2Ages = [];   // 추가
 
                 if (querySnapshot.empty) {
                     noDataMessage.classList.remove('hidden');
                     loadingMessage.classList.add('hidden');
-                    console.log("No data found for the given criteria.");
+                    document.getElementById('avgAgeGroup1').textContent = 'N/A'; // 추가
+                    document.getElementById('avgAgeGroup2').textContent = 'N/A'; // 추가
                     return;
                 }
 
@@ -681,8 +691,10 @@
 
                     if (data.group === '1조' && typeof data.totalScore === 'number') {
                         group1Scores.push(data.totalScore);
+                        if (typeof data.age === 'number') group1Ages.push(data.age);  // 추가
                     } else if (data.group === '2조' && typeof data.totalScore === 'number') {
                         group2Scores.push(data.totalScore);
+                        if (typeof data.age === 'number') group2Ages.push(data.age);  // 추가
                     }
                 });
                 console.log(`Fetched ${allResponses.length} responses.`);
@@ -735,11 +747,17 @@
                     userIdCell.classList.add('hidden-column');
                 });
 
-                const calculateAverage = (scores) => scores.length > 0 ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 'N/A';
+                const calculateAverage = (arr) =>
+                    arr.length > 0 ? (arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(1) : 'N/A';
 
-                // Update textContent to include count of participants
                 avgScoreGroup1.textContent = `${calculateAverage(group1Scores)} (${group1Scores.length}명)`;
                 avgScoreGroup2.textContent = `${calculateAverage(group2Scores)} (${group2Scores.length}명)`;
+
+                document.getElementById('avgAgeGroup1').textContent =
+                    group1Ages.length > 0 ? `${calculateAverage(group1Ages)}세` : 'N/A';
+                document.getElementById('avgAgeGroup2').textContent =
+                    group2Ages.length > 0 ? `${calculateAverage(group2Ages)}세` : 'N/A';
+
                 console.log(`Average scores calculated: Group 1=${avgScoreGroup1.textContent}, Group 2=${avgScoreGroup2.textContent}`);
 
             } catch (e) {
