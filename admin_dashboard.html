@@ -686,17 +686,18 @@
                 }
 
                 querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    allResponses.push({ id: doc.id, ...data });
+    const data = doc.data();
+    allResponses.push({ id: doc.id, ...data });
 
-                    if (data.group === '1조' && typeof data.totalScore === 'number') {
-                        group1Scores.push(data.totalScore);
-                        if (typeof data.age === 'number') group1Ages.push(data.age);  // 추가
-                    } else if (data.group === '2조' && typeof data.totalScore === 'number') {
-                        group2Scores.push(data.totalScore);
-                        if (typeof data.age === 'number') group2Ages.push(data.age);  // 추가
-                    }
-                });
+    if (data.group === '1조') {
+        // ✅ totalScore와 age를 독립적으로 처리
+        if (typeof data.totalScore === 'number') group1Scores.push(data.totalScore);
+        if (typeof data.age === 'number') group1Ages.push(data.age);
+    } else if (data.group === '2조') {
+        if (typeof data.totalScore === 'number') group2Scores.push(data.totalScore);
+        if (typeof data.age === 'number') group2Ages.push(data.age);
+    }
+});
                 console.log(`Fetched ${allResponses.length} responses.`);
 
                 allResponses.sort((a, b) => a.timestamp.toDate() - b.timestamp.toDate());
