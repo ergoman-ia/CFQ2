@@ -90,8 +90,12 @@
 
         .score-legend span {
             flex: 1;
+            min-width: 0;
             text-align: center;
             font-size: 0.9rem;
+            white-space: nowrap;
+            /* [FIX] '매우 드물게' 같은 라벨이 좁은 화면에서 또 줄바꿈되지 않도록.
+               <br>로 의도한 줄바꿈(라벨/숫자)만 적용됨 */
         }
 
         .container {
@@ -381,7 +385,8 @@
             }
 
             .score-legend span {
-                font-size: 0.8rem;
+                font-size: 0.72rem;
+                letter-spacing: -0.2px;
             }
 
             .container {
@@ -448,6 +453,13 @@
             }
         }
 
+        /* [FIX] 초소형 화면(380px 이하)에서도 '매우 드물게'가 한 줄에 들어가도록 추가 축소.
+           (이 자리에 원래 여분의 닫는 중괄호 '}' 가 하나 더 있어 제거함) */
+        @media (max-width: 380px) {
+            .score-legend span {
+                font-size: 0.62rem;
+                letter-spacing: -0.4px;
+            }
         }
     </style>
 </head>
