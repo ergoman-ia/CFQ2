@@ -718,7 +718,8 @@
                     r.timestamp && typeof r.timestamp.toDate === 'function'
                         ? r.timestamp.toDate().getTime()
                         : 0;
-                allResponses.sort((a, b) => toMillis(a) - toMillis(b));
+                // [수정] 최신 응답이 위로 오도록 내림차순 정렬
+                allResponses.sort((a, b) => toMillis(b) - toMillis(a));
 
                 allResponses.forEach(response => {
                     const row = surveyDataTableBody.insertRow();
