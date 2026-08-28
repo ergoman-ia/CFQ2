@@ -649,7 +649,7 @@
                     <input type="date" id="filterDate">
                     <select id="filterHour"
                         style="padding: 8px; border-radius: 5px; border: 1px solid #cbd5e0; min-height: 44px;"></select>
-                    <span>시</span>
+                    <span>시 이후</span>
                 </div>
                 <button id="filterButton" style="margin-left: 10px;">조회</button>
                 <button id="logoutButton" class="logout-button">로그아웃</button>
@@ -673,7 +673,7 @@
             <div class="chart-section">
                 <div class="chart-card">
                     <h3>연령대별 평균 점수</h3>
-                    <p class="chart-sub">선택한 일시의 조별 평균 인지 실패 점수(60점 만점)</p>
+                    <p class="chart-sub">선택한 시각 이후의 조별 평균 인지 실패 점수(60점 만점)</p>
                     <div class="chart-legend">
                         <span class="legend-item"><span class="key g1"></span>1조</span>
                         <span class="legend-item"><span class="key g2"></span>2조</span>
@@ -683,7 +683,7 @@
 
                 <div class="chart-card">
                     <h3>성별 평균 점수</h3>
-                    <p class="chart-sub">선택한 일시의 조별 평균 인지 실패 점수(60점 만점)</p>
+                    <p class="chart-sub">선택한 시각 이후의 조별 평균 인지 실패 점수(60점 만점)</p>
                     <div class="chart-legend">
                         <span class="legend-item"><span class="key g1"></span>1조</span>
                         <span class="legend-item"><span class="key g2"></span>2조</span>
@@ -719,7 +719,7 @@
                         <!-- Data will be loaded here -->
                     </tbody>
                 </table>
-                <p id="noDataMessage" class="loading-message hidden">선택한 일시에 저장된 응답이 없습니다.</p>
+                <p id="noDataMessage" class="loading-message hidden">선택한 시각 이후에 저장된 응답이 없습니다.</p>
             </div>
         </div>
     </div>
@@ -967,9 +967,10 @@
             try {
                 let q = collection(db, `artifacts/${projectId}/public/data/cfq_responses`);
 
-                // 선택한 날짜의 선택한 시각 한 시간(00분 00초 ~ 59분 59초)만 조회
+                // 선택한 날짜의 선택한 시각부터 그날 자정 직전까지 조회
+                // 예: 14시를 고르면 14:00:00 ~ 23:59:59 응답이 모두 포함된다.
                 const startTimestamp = new Date(`${dateVal}T${hourVal}:00:00`);
-                const endTimestamp = new Date(`${dateVal}T${hourVal}:59:59.999`);
+                const endTimestamp = new Date(`${dateVal}T23:59:59.999`);
 
                 q = query(q, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp));
                 console.log(`조회 구간: ${startTimestamp.toLocaleString()} ~ ${endTimestamp.toLocaleString()}`);
