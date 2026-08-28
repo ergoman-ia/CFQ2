@@ -722,29 +722,15 @@
 
         /* 제출을 마친 뒤: 문항은 그대로 읽히되 다시 고를 수는 없다 */
         .locked .opt,
-        .locked .chip {
-            cursor: default;
-        }
-
+        .locked .chip,
         .locked .opt input,
         .locked .chip input {
             cursor: default;
         }
 
-        .locked .opt span,
-        .locked .chip span,
-        .locked .stepper input {
-            opacity: 0.96;
-        }
-
-        .locked .opt input:not(:checked)+span,
-        .locked .chip input:not(:checked)+span {
-            background-color: #FAFBFC;
-            color: var(--ink-faint);
-        }
-
-        .locked .opt input:not(:checked)+span b {
-            color: var(--ink-faint);
+        .locked-view .progress-count,
+        .locked-view .gauge {
+            display: none;
         }
 
         .hidden {
@@ -803,7 +789,7 @@
             <div class="done-mark" aria-hidden="true">&#10003;</div>
             <div>
                 <h2>이미 응답을 마치셨습니다</h2>
-                <p>설문 내용과 내가 고른 답은 그대로 보실 수 있고, 다시 제출만 되지 않습니다.</p>
+                <p>설문 내용은 아래에서 그대로 보실 수 있고, 다시 제출만 되지 않습니다.</p>
                 <p class="done-meta"><span id="doneAt">-</span> · 인지 실패 점수 <span id="doneScore">-</span></p>
             </div>
         </section>
@@ -1428,48 +1414,30 @@
                 card.classList.toggle('answered', done.indexOf(Number(card.dataset.no)) !== -1);
             });
 
+            if (isSaving || isLocked) return;
+
             var complete = done.length === TOTAL;
-            submitButton.classList.toggle('ready', complete || isLocked);
-
-            if (isSaving) return;
-
-            if (isLocked) {
-                submitButton.disabled = false;
-                buttonText.textContent = '내 결과 보기';
-                return;
-            }
-
+            submitButton.classList.toggle('ready', complete);
             submitButton.disabled = !complete;
             buttonText.textContent = complete
                 ? '결과 보기'
                 : '아직 ' + (TOTAL - done.length) + '문항이 남았습니다';
         }
 
-        // 저장된 응답을 화면에 되살리고 입력만 잠근다. 문항은 그대로 읽힌다.
-        function setRadio(name, value) {
-            if (value === null || value === undefined) return;
-            var el = form.querySelector('input[name="' + name + '"][value="' + value + '"]');
-            if (el) el.checked = true;
-        }
-
+        // 제출을 마치면 입력만 잠근다. 문항은 그대로 읽을 수 있다.
         function applyLock(info) {
             if (!info || isLocked) return;
 
             isLocked = true;
             lockInfo = info;
 
-            setRadio('group', info.group);
-            setRadio('gender', info.gender);
-            if (typeof info.age === 'number') ageInput.value = info.age;
-
-            if (info.responses) {
-                Object.keys(info.responses).forEach(function (key) {
-                    setRadio(key, info.responses[key]);
-                });
-            }
-
             form.querySelectorAll('input').forEach(function (el) { el.disabled = true; });
             form.classList.add('locked');
+            document.body.classList.add('locked-view');
+
+            var bar = document.querySelector('.submitbar');
+            if (bar) bar.classList.add('hidden');
+            document.body.style.paddingBottom = '24px';
 
             document.getElementById('doneAt').textContent = info.at
                 ? new Date(info.at).toLocaleString('ko-KR')
@@ -1477,8 +1445,6 @@
             document.getElementById('doneScore').textContent =
                 typeof info.score === 'number' ? info.score + '점' : '-';
             document.getElementById('doneCard').classList.remove('hidden');
-
-            updateProgress();
         }
 
         // Firestore에서 기존 응답을 찾았을 때 모듈 쪽에서 부른다.
@@ -1565,19 +1531,6 @@
             scoreNumber.textContent = '0';
         }
 
-        // 이미 제출한 사람에게 저장된 결과를 다시 보여 준다.
-        function showStoredResult() {
-            var info = lockInfo || {};
-            sheetStatus.textContent = '이미 제출한 응답입니다.';
-            sheetStatus.className = 'sheet-status ok';
-            showResult(
-                typeof info.score === 'number' ? info.score : 0,
-                info.group || '-',
-                info.gender || '-',
-                info.age
-            );
-        }
-
         document.getElementById('restartButton').addEventListener('click', function () {
             closeSheet();
             window.scrollTo({ top: 0, behavior: scrollMode });
@@ -1591,11 +1544,7 @@
         form.addEventListener('submit', function (event) {
             event.preventDefault();
 
-            // 이미 제출했다면 다시 저장하지 않고 기존 결과만 보여 준다.
-            if (isLocked) {
-                showStoredResult();
-                return;
-            }
+            if (isLocked) return;   // 이미 제출한 뒤에는 다시 저장하지 않는다.
 
             var selectedGroup = form.elements['group'].value;
             var selectedGender = form.elements['gender'].value;
