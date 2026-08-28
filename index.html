@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#FFFFFF">
+    <meta name="format-detection" content="telephone=no">
+    <title>인지 실패 설문지 (CFQ 2.0)</title>
+    <style>
+        :root {
+            --ink: #151B26;
+            --ink-soft: #5B6472;
+            --ink-faint: #8B95A3;
+            --paper: #ECEFF3;
+            --surface: #FFFFFF;
+            --line: #DDE2EA;
+            --signal: #F2B705;
+            --signal-deep: #C99400;
+            --safe: #0E9F6E;
+            --alert: #E02424;
+            --radius: 16px;
+            --header-h: 72px;
+            --font: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard',
+                'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font);
+            background-color: var(--paper);
+            color: var(--ink);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: calc(96px + env(safe-area-inset-bottom));
+        }
+
+        /* ───────── 상단 고정 바 ───────── */
+        .appbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: saturate(180%) blur(12px);
+            -webkit-backdrop-filter: saturate(180%) blur(12px);
+            border-bottom: 1px solid var(--line);
+            padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+        }
+
+        .appbar-top {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .appbar-title {
+            font-size: 1.02rem;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            margin: 0;
+        }
+
+        .appbar-title span {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--ink-faint);
+            margin-left: 5px;
+            letter-spacing: 0;
+        }
+
+        .progress-count {
+            font-size: 0.82rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--ink-soft);
+            white-space: nowrap;
+        }
+
+        .progress-count b {
+            color: var(--ink);
+            font-size: 1.05rem;
+        }
+
+        /* 문항 15개를 그대로 15칸으로 나타낸 진행 게이지 */
+        .gauge {
+            display: flex;
+            gap: 3px;
+            margin-top: 9px;
+        }
+
+        .gauge i {
+            flex: 1;
+            height: 6px;
+            border-radius: 2px;
+            background-color: #E3E7EE;
+            transition: background-color 0.25s ease;
+        }
+
+        .gauge i.done {
+            background-color: var(--signal);
+        }
+
+        .gauge i.current {
+            background-color: var(--ink);
+        }
+
+        /* ───────── 본문 ───────── */
+        main {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: calc(var(--header-h) + 16px) 14px 0;
+        }
+
+        .intro {
+            background-color: var(--ink);
+            color: #FFFFFF;
+            border-radius: var(--radius);
+            padding: 20px 18px;
+            margin-bottom: 14px;
+        }
+
+        .intro h2 {
+            margin: 0 0 8px;
+            font-size: 1.18rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .intro p {
+            margin: 0;
+            font-size: 0.92rem;
+            color: #C6CDD9;
+        }
+
+        .intro em {
+            font-style: normal;
+            color: var(--signal);
+            font-weight: 700;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            scroll-margin-top: calc(var(--header-h) + 12px);
+        }
+
+        .card-title {
+            font-size: 0.98rem;
+            font-weight: 700;
+            margin: 0 0 12px;
+            letter-spacing: -0.3px;
+        }
+
+        .field+.field {
+            margin-top: 18px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: var(--ink-soft);
+            margin-bottom: 8px;
+        }
+
+        /* 칩 선택 (조 · 성별) */
+        .chips {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chip {
+            flex: 1;
+            position: relative;
+        }
+
+        .chip input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .chip span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink-soft);
+            background-color: #F7F8FA;
+            transition: all 0.18s ease;
+        }
+
+        .chip input:checked+span {
+            background-color: var(--ink);
+            border-color: var(--ink);
+            color: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.35);
+        }
+
+        .chip input:focus-visible+span {
+            outline: 2px solid var(--signal-deep);
+            outline-offset: 2px;
+        }
+
+        /* 나이 입력 */
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stepper button {
+            width: 52px;
+            height: 52px;
+            flex: none;
+            border: 1.5px solid var(--line);
+            background-color: #F7F8FA;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--ink);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .stepper button:active {
+            background-color: #E9ECF1;
+        }
+
+        .stepper input {
+            flex: 1;
+            min-width: 0;
+            height: 52px;
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: var(--font);
+            color: var(--ink);
+            background-color: #F7F8FA;
+            box-sizing: border-box;
+        }
+
+        .stepper input:focus {
+            outline: none;
+            border-color: var(--ink);
+            background-color: #FFFFFF;
+        }
+
+        .stepper .unit {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--ink-soft);
+            flex: none;
+        }
+
+        /* ───────── 문항 카드 ───────── */
+        .q {
+            background-color: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 16px 16px 14px;
+            margin-bottom: 10px;
+            scroll-margin-top: calc(var(--header-h) + 12px);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .q.answered {
+            border-color: #BFE7D5;
+            background-color: #FBFEFC;
+        }
+
+        .q.missing {
+            border-color: var(--alert);
+            box-shadow: 0 0 0 3px rgba(224, 36, 36, 0.12);
+            animation: nudge 0.4s ease;
+        }
+
+        @keyframes nudge {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .q-head {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .q-num {
+            flex: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background-color: #EEF1F6;
+            color: var(--ink-soft);
+            font-size: 0.74rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .q.answered .q-num {
+            background-color: var(--safe);
+            color: #FFFFFF;
+        }
+
+        .q-text {
+            margin: 0;
+            font-size: 1.02rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            word-break: keep-all;
+        }
+
+        .scale {
+            display: flex;
+            gap: 5px;
+        }
+
+        .opt {
+            flex: 1;
+            min-width: 0;
+            position: relative;
+        }
+
+        .opt input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .opt span {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 3px;
+            padding: 9px 2px 8px;
+            min-height: 62px;
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            background-color: #F7F8FA;
+            box-sizing: border-box;
+            transition: all 0.15s ease;
+        }
+
+        .opt b {
+            font-size: 1.16rem;
+            font-weight: 800;
+            color: var(--ink);
+            font-variant-numeric: tabular-nums;
+            line-height: 1.1;
+        }
+
+        .opt small {
+            font-size: 0.63rem;
+            font-weight: 600;
+            color: var(--ink-faint);
+            text-align: center;
+            line-height: 1.25;
+            letter-spacing: -0.3px;
+        }
+
+        .opt input:checked+span {
+            background-color: var(--ink);
+            border-color: var(--ink);
+            box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .opt input:checked+span b {
+            color: var(--signal);
+        }
+
+        .opt input:checked+span small {
+            color: #D5DAE3;
+        }
+
+        .opt input:focus-visible+span {
+            outline: 2px solid var(--signal-deep);
+            outline-offset: 2px;
+        }
+
+        /* ───────── 하단 제출 바 ───────── */
+        .submitbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.94);
+            backdrop-filter: saturate(180%) blur(12px);
+            -webkit-backdrop-filter: saturate(180%) blur(12px);
+            border-top: 1px solid var(--line);
+            padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+        }
+
+        .submitbar-inner {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .submit-button {
+            width: 100%;
+            min-height: 54px;
+            border: none;
+            border-radius: 14px;
+            background-color: var(--ink);
+            color: #FFFFFF;
+            font-family: var(--font);
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        .submit-button.ready {
+            background-color: var(--signal);
+            color: var(--ink);
+            box-shadow: 0 6px 18px rgba(242, 183, 5, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.35);
+            border-top-color: #FFFFFF;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .submit-button.ready .spinner {
+            border-color: rgba(21, 27, 38, 0.3);
+            border-top-color: var(--ink);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ───────── 토스트 ───────── */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(84px + env(safe-area-inset-bottom));
+            transform: translate(-50%, 12px);
+            z-index: 300;
+            background-color: var(--ink);
+            color: #FFFFFF;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            max-width: calc(100% - 40px);
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* ───────── 결과 시트 ───────── */
+        .sheet {
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            background-color: rgba(21, 27, 38, 0.55);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .sheet.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .sheet-panel {
+            background-color: var(--surface);
+            width: 100%;
+            max-width: 640px;
+            border-radius: 22px 22px 0 0;
+            padding: 26px 20px calc(24px + env(safe-area-inset-bottom));
+            text-align: center;
+            transform: translateY(24px);
+            transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1);
+            max-height: 92vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .sheet.show .sheet-panel {
+            transform: translateY(0);
+        }
+
+        .sheet-eyebrow {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            color: var(--ink-faint);
+            margin: 0 0 14px;
+        }
+
+        .dial {
+            position: relative;
+            width: 176px;
+            height: 176px;
+            margin: 0 auto 14px;
+        }
+
+        .dial svg {
+            transform: rotate(-90deg);
+        }
+
+        .dial-track {
+            fill: none;
+            stroke: #EDF0F5;
+            stroke-width: 13;
+        }
+
+        .dial-value {
+            fill: none;
+            stroke: var(--signal);
+            stroke-width: 13;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.9s cubic-bezier(0.2, 0.8, 0.3, 1);
+        }
+
+        .dial-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dial-score {
+            font-size: 3.1rem;
+            font-weight: 800;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -2px;
+        }
+
+        .dial-max {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--ink-faint);
+            margin-top: 4px;
+        }
+
+        .band {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .sheet-desc {
+            font-size: 0.95rem;
+            color: var(--ink-soft);
+            margin: 0 auto 18px;
+            max-width: 380px;
+            word-break: keep-all;
+        }
+
+        .sheet-meta {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .sheet-meta div {
+            flex: 1;
+            padding: 12px 6px;
+            border-right: 1px solid var(--line);
+        }
+
+        .sheet-meta div:last-child {
+            border-right: none;
+        }
+
+        .sheet-meta dt {
+            font-size: 0.72rem;
+            color: var(--ink-faint);
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .sheet-meta dd {
+            margin: 0;
+            font-size: 0.98rem;
+            font-weight: 700;
+        }
+
+        .sheet-note {
+            font-size: 0.78rem;
+            color: var(--ink-faint);
+            margin: 0 0 18px;
+            word-break: keep-all;
+        }
+
+        .sheet-status {
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin: 0 0 14px;
+        }
+
+        .sheet-status.ok {
+            color: var(--safe);
+        }
+
+        .sheet-status.fail {
+            color: var(--alert);
+        }
+
+        .ghost-button {
+            width: 100%;
+            min-height: 52px;
+            border-radius: 14px;
+            border: 1.5px solid var(--line);
+            background-color: #F7F8FA;
+            font-family: var(--font);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink);
+            cursor: pointer;
+        }
+
+        .admin-link {
+            display: block;
+            text-align: center;
+            margin: 4px 0 8px;
+            font-size: 0.85rem;
+            color: var(--ink-faint);
+            text-decoration: none;
+        }
+
+        @media (min-width: 700px) {
+            .admin-link {
+                margin: 10px 0 20px;
+            }
+        }
+
+        @media (max-width: 340px) {
+            .opt small {
+                font-size: 0.58rem;
+            }
+
+            .opt b {
+                font-size: 1.05rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="appbar">
+        <div class="appbar-top">
+            <h1 class="appbar-title">인지 실패 설문지<span>CFQ 2.0</span></h1>
+            <div class="progress-count"><b id="answeredCount">0</b>/<span id="totalCount">15</span>문항</div>
+        </div>
+        <div class="gauge" id="gauge" aria-hidden="true"><i data-no="1"></i><i data-no="2"></i><i data-no="3"></i><i data-no="4"></i><i data-no="5"></i><i data-no="6"></i><i data-no="7"></i><i data-no="8"></i><i data-no="9"></i><i data-no="10"></i><i data-no="11"></i><i data-no="12"></i><i data-no="13"></i><i data-no="14"></i><i data-no="15"></i></div>
+    </header>
+
+    <main>
+        <form id="cfqForm" novalidate>
+            <section class="intro">
+                <h2>사소한 실수, 얼마나 자주 겪으셨나요?</h2>
+                <p><em>지난 6개월</em> 동안의 경험을 가장 잘 반영하는 답을 골라 주세요. 정답은 없습니다.</p>
+            </section>
+
+            <section class="card" id="infoCard">
+                <p class="card-title">응답자 정보</p>
+
+                <div class="field" id="groupField">
+                    <span class="field-label">소속 조</span>
+                    <div class="chips">
+                        <label class="chip"><input type="radio" name="group" value="1조"><span>1조</span></label>
+                        <label class="chip"><input type="radio" name="group" value="2조"><span>2조</span></label>
+                    </div>
+                </div>
+
+                <div class="field" id="genderField">
+                    <span class="field-label">성별</span>
+                    <div class="chips">
+                        <label class="chip"><input type="radio" name="gender" value="남성"><span>남성</span></label>
+                        <label class="chip"><input type="radio" name="gender" value="여성"><span>여성</span></label>
+                    </div>
+                </div>
+
+                <div class="field" id="ageField">
+                    <span class="field-label">만 나이</span>
+                    <div class="stepper">
+                        <button type="button" id="ageMinus" aria-label="나이 낮추기">−</button>
+                        <input type="number" name="age" id="ageInput" min="1" max="120" inputmode="numeric"
+                            placeholder="예: 45">
+                        <button type="button" id="agePlus" aria-label="나이 높이기">+</button>
+                        <span class="unit">세</span>
+                    </div>
+                </div>
+            </section>
+
+            <div id="questionList">
+                <section class="q" id="q1" data-no="1">
+                    <div class="q-head">
+                        <div class="q-num">01</div>
+                        <p class="q-text">다른 방에 갔다가, 왜 왔는지 잊은 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q1" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q1" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q1" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q1" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q1" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q2" data-no="2">
+                    <div class="q-head">
+                        <div class="q-num">02</div>
+                        <p class="q-text">전등을 껐는지, 문을 잠갔는지 헷갈려 다시 확인한 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q2" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q2" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q2" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q2" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q2" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q3" data-no="3">
+                    <div class="q-head">
+                        <div class="q-num">03</div>
+                        <p class="q-text">무언가에 집중하느라 누군가 말하는 것을 못 들은 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q3" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q3" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q3" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q3" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q3" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q4" data-no="4">
+                    <div class="q-head">
+                        <div class="q-num">04</div>
+                        <p class="q-text">미리 해 둔 약속을 잊은 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q4" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q4" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q4" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q4" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q4" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q5" data-no="5">
+                    <div class="q-head">
+                        <div class="q-num">05</div>
+                        <p class="q-text">필요한 물건 대신 버리려던 것을 챙긴 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q5" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q5" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q5" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q5" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q5" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q6" data-no="6">
+                    <div class="q-head">
+                        <div class="q-num">06</div>
+                        <p class="q-text">가게에 도착해서 사려던 물건이 무엇인지 잊은 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q6" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q6" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q6" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q6" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q6" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q7" data-no="7">
+                    <div class="q-head">
+                        <div class="q-num">07</div>
+                        <p class="q-text">외출할 때 필요한 소지품을 두고 나온 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q7" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q7" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q7" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q7" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q7" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q8" data-no="8">
+                    <div class="q-head">
+                        <div class="q-num">08</div>
+                        <p class="q-text">잘 아는 비밀번호가 갑자기 생각나지 않은 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q8" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q8" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q8" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q8" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q8" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q9" data-no="9">
+                    <div class="q-head">
+                        <div class="q-num">09</div>
+                        <p class="q-text">택배가 왔을 때 무엇을 주문했었는지 기억나지 않은 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q9" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q9" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q9" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q9" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q9" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q10" data-no="10">
+                    <div class="q-head">
+                        <div class="q-num">10</div>
+                        <p class="q-text">다른 사람과 헷갈려 이름을 잘못 부른 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q10" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q10" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q10" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q10" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q10" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q11" data-no="11">
+                    <div class="q-head">
+                        <div class="q-num">11</div>
+                        <p class="q-text">아는 사람인데 대화 중에 이름이 떠오르지 않은 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q11" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q11" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q11" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q11" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q11" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q12" data-no="12">
+                    <div class="q-head">
+                        <div class="q-num">12</div>
+                        <p class="q-text">날짜나 요일을 혼동한 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q12" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q12" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q12" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q12" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q12" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q13" data-no="13">
+                    <div class="q-head">
+                        <div class="q-num">13</div>
+                        <p class="q-text">물건을 엉뚱한 곳에 둔 적이 있으신가요? (예: 냉장고 속의 리모컨)</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q13" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q13" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q13" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q13" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q13" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q14" data-no="14">
+                    <div class="q-head">
+                        <div class="q-num">14</div>
+                        <p class="q-text">이동 중에 챙겨야 할 물건을 빠뜨린 것이 뒤늦게 생각난 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q14" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q14" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q14" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q14" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q14" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="q" id="q15" data-no="15">
+                    <div class="q-head">
+                        <div class="q-num">15</div>
+                        <p class="q-text">분명히 찾아본 곳에서 물건을 다시 발견한 적이 있으신가요?</p>
+                    </div>
+                    <div class="scale">
+                        <label class="opt">
+                            <input type="radio" name="q15" value="0">
+                            <span><b>0</b><small>결코<br>없음</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q15" value="1">
+                            <span><b>1</b><small>매우<br>드물게</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q15" value="2">
+                            <span><b>2</b><small>가끔</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q15" value="3">
+                            <span><b>3</b><small>꽤<br>자주</small></span>
+                        </label>
+                        <label class="opt">
+                            <input type="radio" name="q15" value="4">
+                            <span><b>4</b><small>매우<br>자주</small></span>
+                        </label>
+                    </div>
+                </section>
+            </div>
+        </form>
+
+        <a class="admin-link" href="admin_dashboard.html">관리자 대시보드</a>
+    </main>
+
+    <div class="submitbar">
+        <div class="submitbar-inner">
+            <button type="submit" form="cfqForm" class="submit-button" id="submitButton">
+                <span id="buttonText">결과 보기</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="sheet" id="resultSheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+        <div class="sheet-panel">
+            <p class="sheet-eyebrow" id="sheetTitle">인지 실패 점수</p>
+
+            <div class="dial">
+                <svg width="176" height="176" viewBox="0 0 176 176">
+                    <circle class="dial-track" cx="88" cy="88" r="74"></circle>
+                    <circle class="dial-value" id="dialValue" cx="88" cy="88" r="74" stroke-dasharray="464.96"
+                        stroke-dashoffset="464.96"></circle>
+                </svg>
+                <div class="dial-center">
+                    <div class="dial-score" id="scoreNumber">0</div>
+                    <div class="dial-max">60점 만점</div>
+                </div>
+            </div>
+
+            <span class="band" id="scoreBand">보통</span>
+            <p class="sheet-desc" id="scoreDesc"></p>
+
+            <dl class="sheet-meta">
+                <div>
+                    <dt>조</dt>
+                    <dd id="metaGroup">-</dd>
+                </div>
+                <div>
+                    <dt>성별</dt>
+                    <dd id="metaGender">-</dd>
+                </div>
+                <div>
+                    <dt>만 나이</dt>
+                    <dd id="metaAge">-</dd>
+                </div>
+            </dl>
+
+            <p class="sheet-status" id="sheetStatus"></p>
+            <p class="sheet-note">이 점수는 자기 보고식 설문 결과이며 의학적 진단이 아닙니다.</p>
+
+            <button type="button" class="ghost-button" id="restartButton">새로 응답하기</button>
+        </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         1) 화면 로직: 일반 스크립트라 서버 없이 파일을 열어도 항상 실행된다.
+            문항 생성, 진행 게이지, 결과 시트가 여기에 들어 있다.
+         ───────────────────────────────────────────────────────────── -->
+    <script>
+        // 저장 기능은 아래 모듈 스크립트가 준비되면 CFQ.save에 연결된다.
+        window.CFQ = { save: null };
+
+        /* ───────── 진행 게이지 만들기 ─────────
+           문항은 HTML에 그대로 들어 있으므로, 여기서는 문항 수만큼
+           게이지 칸만 만든다. (스크립트가 멈춰도 문항은 그대로 보인다) */
+        var gauge = document.getElementById('gauge');
+        var cards = document.querySelectorAll('.q');
+        var TOTAL = cards.length;
+
+        document.getElementById('totalCount').textContent = TOTAL;
+
+        // 게이지 칸은 HTML에 미리 들어 있고, 문항 수와 어긋날 때만 다시 만든다.
+        if (gauge.children.length !== TOTAL) {
+            gauge.innerHTML = '';
+            cards.forEach(function (card) {
+                var tick = document.createElement('i');
+                tick.dataset.no = card.dataset.no;
+                gauge.appendChild(tick);
+            });
+        }
+
+        /* ───────── 진행 상황 ───────── */
+        var form = document.getElementById('cfqForm');
+        var answeredCount = document.getElementById('answeredCount');
+        var submitButton = document.getElementById('submitButton');
+        var buttonText = document.getElementById('buttonText');
+
+        var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var scrollMode = prefersReducedMotion ? 'auto' : 'smooth';
+
+        function answeredNumbers() {
+            var done = [];
+            for (var i = 1; i <= TOTAL; i++) {
+                if (form.querySelector('input[name="q' + i + '"]:checked')) done.push(i);
+            }
+            return done;
+        }
+
+        function updateProgress() {
+            var done = answeredNumbers();
+            answeredCount.textContent = done.length;
+
+            gauge.querySelectorAll('i').forEach(function (tick) {
+                tick.classList.toggle('done', done.indexOf(Number(tick.dataset.no)) !== -1);
+            });
+
+            document.querySelectorAll('.q').forEach(function (card) {
+                card.classList.toggle('answered', done.indexOf(Number(card.dataset.no)) !== -1);
+            });
+
+            submitButton.classList.toggle('ready', done.length === TOTAL);
+            if (!submitButton.disabled) buttonText.textContent = '결과 보기';
+        }
+
+        questionList.addEventListener('change', function (event) {
+            var input = event.target;
+            if (input.type !== 'radio') return;
+
+            var card = input.closest('.q');
+            card.classList.remove('missing');
+            updateProgress();
+
+            // 바로 다음 문항이 아직 비어 있을 때만 부드럽게 이동
+            // (앞선 답을 고쳐도 화면이 갑자기 튀지 않도록)
+            var next = document.getElementById('q' + (Number(card.dataset.no) + 1));
+            if (next && !next.querySelector('input:checked')) {
+                setTimeout(function () {
+                    next.scrollIntoView({ behavior: scrollMode, block: 'start' });
+                }, 180);
+            }
+        });
+
+        /* ───────── 나이 스테퍼 ───────── */
+        var ageInput = document.getElementById('ageInput');
+
+        function stepAge(delta) {
+            var current = parseInt(ageInput.value, 10);
+            var base = isNaN(current) ? 40 : current + delta;
+            ageInput.value = Math.min(120, Math.max(1, base));
+        }
+
+        document.getElementById('ageMinus').addEventListener('click', function () { stepAge(-1); });
+        document.getElementById('agePlus').addEventListener('click', function () { stepAge(1); });
+
+        /* ───────── 토스트 ───────── */
+        var toast = document.getElementById('toast');
+        var toastTimer = null;
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+        }
+
+        /* ───────── 결과 시트 ───────── */
+        var sheet = document.getElementById('resultSheet');
+        var dialValue = document.getElementById('dialValue');
+        var scoreNumber = document.getElementById('scoreNumber');
+        var scoreBand = document.getElementById('scoreBand');
+        var scoreDesc = document.getElementById('scoreDesc');
+        var sheetStatus = document.getElementById('sheetStatus');
+        var CIRCUMFERENCE = 2 * Math.PI * 74;
+
+        var BANDS = [
+            { max: 15, name: '낮음', color: '#0E9F6E', bg: '#E4F7EF', desc: '지난 6개월 동안 사소한 실수를 거의 겪지 않으셨습니다.' },
+            { max: 30, name: '보통', color: '#C99400', bg: '#FDF4DC', desc: '누구나 겪는 정도의 실수 빈도입니다. 지금의 습관을 유지해 보세요.' },
+            { max: 45, name: '다소 높음', color: '#D97706', bg: '#FDECD8', desc: '피로나 주의 분산이 겹치는 상황이 없었는지 돌아보면 좋겠습니다.' },
+            { max: 60, name: '높음', color: '#E02424', bg: '#FCE8E8', desc: '작업 전 확인 절차를 동료와 함께 점검해 보시길 권합니다.' }
+        ];
+
+        function showResult(score, group, gender, age) {
+            var band = BANDS.find(function (b) { return score <= b.max; });
+
+            scoreBand.textContent = band.name;
+            scoreBand.style.color = band.color;
+            scoreBand.style.backgroundColor = band.bg;
+            scoreDesc.textContent = band.desc;
+            dialValue.style.stroke = band.color;
+
+            document.getElementById('metaGroup').textContent = group;
+            document.getElementById('metaGender').textContent = gender;
+            document.getElementById('metaAge').textContent = age + '세';
+
+            sheet.classList.add('show');
+
+            requestAnimationFrame(function () {
+                dialValue.style.strokeDashoffset = CIRCUMFERENCE * (1 - score / 60);
+            });
+
+            if (prefersReducedMotion) {
+                scoreNumber.textContent = score;
+                return;
+            }
+
+            var shown = 0;
+            var stepSize = Math.max(1, Math.round(score / 24));
+            var timer = setInterval(function () {
+                shown = Math.min(score, shown + stepSize);
+                scoreNumber.textContent = shown;
+                if (shown >= score) clearInterval(timer);
+            }, 32);
+        }
+
+        function closeSheet() {
+            sheet.classList.remove('show');
+            dialValue.style.strokeDashoffset = CIRCUMFERENCE;
+            scoreNumber.textContent = '0';
+        }
+
+        document.getElementById('restartButton').addEventListener('click', function () {
+            closeSheet();
+            form.reset();
+            document.querySelectorAll('.q').forEach(function (card) {
+                card.classList.remove('answered', 'missing');
+            });
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: scrollMode });
+        });
+
+        sheet.addEventListener('click', function (event) {
+            if (event.target === sheet) closeSheet();
+        });
+
+        /* ───────── 제출 ───────── */
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var selectedGroup = form.elements['group'].value;
+            var selectedGender = form.elements['gender'].value;
+            var enteredAge = parseInt(ageInput.value, 10);
+
+            if (!selectedGroup || !selectedGender || isNaN(enteredAge) || enteredAge < 1 || enteredAge > 120) {
+                document.getElementById('infoCard').scrollIntoView({ behavior: scrollMode, block: 'start' });
+                showToast('조, 성별, 만 나이를 먼저 입력해 주세요.');
+                return;
+            }
+
+            var done = answeredNumbers();
+            if (done.length < TOTAL) {
+                var firstMissing = document.querySelector('.q:not(.answered)');
+                firstMissing.classList.add('missing');
+                firstMissing.scrollIntoView({ behavior: scrollMode, block: 'start' });
+                showToast('아직 ' + (TOTAL - done.length) + '문항이 남았습니다.');
+                setTimeout(function () { firstMissing.classList.remove('missing'); }, 1800);
+                return;
+            }
+
+            var questionResponses = {};
+            var totalScore = 0;
+            for (var i = 1; i <= TOTAL; i++) {
+                var value = parseInt(form.querySelector('input[name="q' + i + '"]:checked').value, 10);
+                questionResponses['q' + i] = value;
+                totalScore += value;
+            }
+
+            submitButton.disabled = true;
+            buttonText.textContent = '저장하는 중';
+            var spinner = document.createElement('div');
+            spinner.className = 'spinner';
+            submitButton.appendChild(spinner);
+
+            var surveyData = {
+                group: selectedGroup,
+                gender: selectedGender,
+                age: enteredAge,
+                totalScore: totalScore,
+                responses: questionResponses
+            };
+
+            var saving = typeof window.CFQ.save === 'function'
+                ? window.CFQ.save(surveyData)
+                : Promise.reject(new Error('서버에 연결되지 않아 점수만 보여 드립니다.'));
+
+            saving.then(function () {
+                sheetStatus.textContent = '응답이 저장되었습니다.';
+                sheetStatus.className = 'sheet-status ok';
+            }).catch(function (e) {
+                console.error('저장 오류:', e);
+                sheetStatus.textContent = e.message;
+                sheetStatus.className = 'sheet-status fail';
+            }).then(function () {
+                showResult(totalScore, selectedGroup, selectedGender, enteredAge);
+                spinner.remove();
+                submitButton.disabled = false;
+                updateProgress();
+            });
+        });
+
+        /* ───────── 헤더 높이를 실제 값으로 맞춤 ───────── */
+        var appbar = document.querySelector('.appbar');
+
+        function syncHeaderHeight() {
+            document.documentElement.style.setProperty('--header-h', appbar.offsetHeight + 'px');
+        }
+
+        window.addEventListener('resize', syncHeaderHeight);
+        syncHeaderHeight();
+        updateProgress();
+    </script>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         2) 저장 기능: Firebase 연결에 실패해도(로컬에서 파일을 직접 열었을 때 등)
+            위 화면 로직은 그대로 동작하도록 분리했다.
+         ───────────────────────────────────────────────────────────── -->
+    <script type="module">
+        (async function () {
+            try {
+                const [appModule, authModule, storeModule, secrets] = await Promise.all([
+                    import("https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"),
+                    import("https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js"),
+                    import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js"),
+                    import("./secrets.js")
+                ]);
+
+                const firebaseConfig = secrets.FIREBASE_CONFIG;
+                if (!firebaseConfig || !firebaseConfig.projectId) {
+                    throw new Error('Firebase 설정이 비어 있거나 불완전합니다.');
+                }
+
+                const app = appModule.initializeApp(firebaseConfig);
+                const db = storeModule.getFirestore(app);
+                const auth = authModule.getAuth(app);
+                const projectId = firebaseConfig.projectId;
+                const path = `artifacts/${projectId}/public/data/cfq_responses`;
+
+                let currentUserId = null;
+                authModule.onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        return;
+                    }
+                    try {
+                        await authModule.signInAnonymously(auth);
+                        currentUserId = auth.currentUser.uid;
+                    } catch (error) {
+                        console.error('익명 인증 오류:', error);
+                    }
+                });
+
+                window.CFQ.save = async function (data) {
+                    if (!auth.currentUser) {
+                        try {
+                            await authModule.signInAnonymously(auth);
+                            currentUserId = auth.currentUser.uid;
+                        } catch (error) {
+                            throw new Error('인증이 끝나지 않아 저장하지 못했습니다.');
+                        }
+                    }
+                    await storeModule.addDoc(storeModule.collection(db, path), Object.assign({
+                        userId: currentUserId,
+                        timestamp: new Date()
+                    }, data));
+                };
+
+                console.log('Firebase 연결 완료. 응답 저장 경로:', path);
+            } catch (error) {
+                console.warn('Firebase에 연결하지 못했습니다. 설문은 그대로 이용할 수 있고 저장만 되지 않습니다.', error);
+            }
+        })();
+    </script>
+</body>
+
+</html>

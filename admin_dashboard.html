@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 대시보드</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            color: #1a202c;
+            margin-bottom: 20px;
+        }
+
+        .auth-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #cbd5e0;
+            border-radius: 10px;
+            background-color: #e2e8f0;
+        }
+
+        .auth-section input {
+            padding: 10px 15px;
+            border: 1px solid #a0aec0;
+            border-radius: 8px;
+            margin-right: 10px;
+            width: 200px;
+        }
+
+        .auth-section button {
+            background-color: #4c51bf;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .auth-section button:hover {
+            background-color: #322f87;
+        }
+
+        .dashboard-content {
+            display: none;
+        }
+
+        .dashboard-content.visible {
+            display: block;
+        }
+
+        .data-section {
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 20px;
+        }
+
+        .data-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            table-layout: fixed;
+            /* Ensures columns respect specified widths */
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: center;
+            /* Center align horizontally */
+            vertical-align: middle;
+            /* Center align vertically */
+            font-size: 0.95rem;
+            word-wrap: break-word;
+            /* Prevents long text from overflowing */
+        }
+
+        .data-table th {
+            background-color: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background-color: #fdfdfd;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #ebf8ff;
+        }
+
+        .loading-message,
+        .error-message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #4a5568;
+        }
+
+        .error-message {
+            color: #dc2626;
+        }
+
+        /* Modified average scores section for horizontal layout */
+        .average-scores {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            background-color: #ecfdf5;
+            display: flex;
+            /* Use flexbox for horizontal layout */
+            justify-content: space-around;
+            /* Distribute items evenly */
+            align-items: center;
+            flex-wrap: wrap;
+            /* Allow wrapping on smaller screens */
+            gap: 20px;
+            /* Space between items */
+        }
+
+        .average-scores .score-group {
+            text-align: center;
+            flex: 1;
+            /* Allow items to grow and shrink */
+            min-width: 200px;
+            /* Minimum width for each score group */
+        }
+
+        .average-scores p {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 5px;
+            /* Reduced margin for tighter display */
+        }
+
+        .average-scores span {
+            font-weight: 700;
+            color: #047857;
+            font-size: 1.69rem;
+            /* Increased by 30% from 1.3rem (1.3 * 1.3 = 1.69) */
+        }
+
+        .average-scores .separator {
+            width: 1px;
+            /* Vertical line */
+            background-color: #a7f3d0;
+            /* Same color as border */
+            height: 80px;
+            /* Height of the separator */
+            margin: 0 20px;
+            /* Space around the separator */
+        }
+
+        /* Hide separator on small screens */
+        @media (max-width: 640px) {
+            .average-scores .separator {
+                display: none;
+            }
+
+            .average-scores {
+                flex-direction: column;
+                /* Stack vertically on small screens */
+            }
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-section label {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .filter-section input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+            min-height: 44px;
+            box-sizing: border-box;
+        }
+
+        .filter-section button {
+            background-color: #6366f1;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            min-height: 44px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .filter-section button:hover {
+            background-color: #4f46e5;
+        }
+
+        .logout-button {
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 20px;
+            min-height: 44px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .logout-button:hover {
+            background-color: #dc2626;
+        }
+
+        /* ───────── 연령대·성별 분포 차트 ───────── */
+        .chart-section {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 18px 16px 12px;
+            background-color: #fdfdfd;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+
+        .chart-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin: 0 0 4px;
+            text-align: center;
+        }
+
+        .chart-card .chart-sub {
+            font-size: 0.8rem;
+            color: #718096;
+            text-align: center;
+            margin: 0 0 14px;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            color: #4a5568;
+        }
+
+        .chart-legend .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-legend .key {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .key.g1,
+        .bar.g1 {
+            background-color: #4c51bf;
+        }
+
+        .key.g2,
+        .bar.g2 {
+            background-color: #10b981;
+        }
+
+        .chart-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .chart-toggle button {
+            background-color: #edf2f7;
+            color: #4a5568;
+            border: 1px solid #cbd5e0;
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            min-height: 36px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .chart-toggle button.active {
+            background-color: #4c51bf;
+            border-color: #4c51bf;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            gap: 4px;
+            border-bottom: 1px solid #cbd5e0;
+            padding-bottom: 0;
+        }
+
+        .bar-group {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .bar-group .bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 5px;
+            height: 170px;
+            width: 100%;
+        }
+
+        .bar-wrap {
+            flex: 1;
+            max-width: 26px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .bar-value {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 3px;
+            white-space: nowrap;
+        }
+
+        .bar {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            min-height: 2px;
+            transition: height 0.4s ease;
+        }
+
+        .bar.empty {
+            background-color: transparent;
+            border: 1px dashed #cbd5e0;
+            border-bottom: none;
+            height: 6px;
+        }
+
+        .bar-label {
+            margin-top: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #2d3748;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .bar-label small {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 500;
+            color: #718096;
+            margin-top: 2px;
+        }
+
+        .chart-empty {
+            text-align: center;
+            color: #718096;
+            font-size: 0.9rem;
+            padding: 40px 0;
+        }
+
+        @media (max-width: 768px) {
+            .chart-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Style to hide columns */
+        .hidden-column {
+            display: none;
+        }
+
+        /* [FIX] 공통 숨김 클래스 - JS에서 classList.add('hidden') 으로 토글하는데
+           기존에는 이 정의가 누락되어 로딩 메시지가 영원히 사라지지 않았음 */
+        .hidden {
+            display: none;
+        }
+
+        /* Delete button style */
+        .delete-button {
+            background-color: #dc2626;
+            /* Red color */
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            /* No margin-left here, as it will be in a new container */
+            min-height: 44px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .delete-button:hover {
+            background-color: #b91c1c;
+            /* Darker red on hover */
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            width: 300px;
+        }
+
+        .modal-content p {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 16px;
+        }
+
+        .modal-content button {
+            background-color: #4c51bf;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 0 5px;
+            min-height: 44px;
+            font-size: 1rem;
+        }
+
+        .modal-content button.cancel-button {
+            background-color: #6b7280;
+        }
+
+        .modal-content button:hover {
+            background-color: #322f87;
+        }
+
+        .modal-content button.cancel-button:hover {
+            background-color: #4b5563;
+        }
+
+        /* New styles for table controls */
+        .table-controls {
+            display: flex;
+            justify-content: flex-end;
+            /* Align to the right */
+            margin-bottom: 10px;
+            /* Space between button and table */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .auth-section input {
+                width: 100%;
+                margin-bottom: 10px;
+                min-height: 44px;
+                box-sizing: border-box;
+                font-size: 1.1rem;
+            }
+
+            .auth-section button {
+                width: 100%;
+                min-height: 48px;
+                font-size: 1.2rem;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-section label,
+            .filter-section input[type="date"],
+            .filter-section button,
+            .logout-button {
+                /* Logout button stays in filter section */
+                width: 100%;
+                margin: 5px 0;
+                min-height: 48px;
+                font-size: 1.1rem;
+            }
+
+            .logout-button {
+                margin-left: 0;
+            }
+
+            /* Adjust checkbox and label for touch */
+            #selectAllCheckbox {
+                transform: scale(1.3);
+                margin-right: 8px;
+            }
+
+            .data-table th:first-child,
+            .data-table td:first-child {
+                padding: 12px 8px;
+            }
+
+            .row-checkbox {
+                transform: scale(1.3);
+            }
+
+            .table-controls {
+                justify-content: center;
+                /* Center button on small screens */
+            }
+
+            .delete-button {
+                width: 100%;
+                /* Make delete button full width on small screens */
+                margin: 5px 0;
+                /* Add vertical margin */
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            /* Further refinement for very small screens if needed */
+            .data-table th,
+            .data-table td {
+                padding: 6px;
+                /* Even smaller padding for very small screens */
+                font-size: 0.75rem;
+                /* Smaller font size */
+            }
+
+            /* [FIX] 성별/만 나이 컬럼이 추가되어 컬럼 순서가 바뀌었으므로
+               nth-child 너비 지정을 실제 레이아웃에 맞게 재정렬.
+               실제 순서: 1 응답날짜 / 2 조 / 3 성별 / 4 만나이 / 5 개별점수 / 6 총점 / 7 모두선택 */
+            .data-table th:nth-child(1) {
+                /* 응답 날짜 */
+                width: 24%;
+            }
+
+            .data-table th:nth-child(2) {
+                /* 조 */
+                width: 9%;
+            }
+
+            .data-table th:nth-child(3) {
+                /* 성별 */
+                width: 9%;
+            }
+
+            .data-table th:nth-child(4) {
+                /* 만 나이 */
+                width: 9%;
+            }
+
+            .data-table th:nth-child(5) {
+                /* 개별 점수 */
+                width: 33%;
+            }
+
+            .data-table th:nth-child(6) {
+                /* 총점 */
+                width: 8%;
+            }
+
+            .data-table th:nth-child(7) {
+                /* 모두 선택 */
+                width: 8%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>관리자 대시보드</h1>
+
+        <div class="auth-section" id="authSection">
+            <p>관리자 비밀번호를 입력하세요:</p>
+            <input type="password" id="adminPassword" placeholder="비밀번호">
+            <button id="loginButton">로그인</button>
+            <p id="authMessage" style="color: red; margin-top: 10px;"></p>
+        </div>
+
+        <div class="dashboard-content" id="dashboardContent">
+            <div class="filter-section">
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <label>시작:</label>
+                    <input type="date" id="startDate">
+                    <select id="startHour"
+                        style="padding: 8px; border-radius: 5px; border: 1px solid #cbd5e0;"></select>
+                    <span>시</span>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:5px; margin-left: 10px;">
+                    <label>종료:</label>
+                    <input type="date" id="endDate">
+                    <select id="endHour" style="padding: 8px; border-radius: 5px; border: 1px solid #cbd5e0;"></select>
+                    <span>시</span>
+                </div>
+                <button id="filterButton" style="margin-left: 10px;">필터링</button>
+                <button id="logoutButton" class="logout-button">로그아웃</button>
+            </div>
+
+            <div class="average-scores">
+                <div class="score-group">
+                    <p>1조 평균 인지 실패 점수(최악 60점)</p>
+                    <span id="avgScoreGroup1">N/A</span>
+                    <p style="margin-top:10px;">평균 연령 : 
+                    <span id="avgAgeGroup1" style="font-size:1.3rem;">N/A</span></p>
+                </div>
+                <div class="separator"></div>
+                <div class="score-group">
+                    <p>2조 평균 인지 실패 점수(최악 60점)</p>
+                    <span id="avgScoreGroup2">N/A</span>
+                    <p style="margin-top:10px;">평균 연령 :
+                    <span id="avgAgeGroup2" style="font-size:1.3rem;">N/A</span></p>
+                </div>
+            </div>
+
+            <div class="chart-toggle" id="chartToggle">
+                <button type="button" data-metric="avg" class="active">평균 점수</button>
+                <button type="button" data-metric="count">응답 인원</button>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-card">
+                    <h3>연령대별 비교</h3>
+                    <p class="chart-sub" id="ageChartSub">선택한 기간의 조별 평균 인지 실패 점수</p>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="key g1"></span>1조</span>
+                        <span class="legend-item"><span class="key g2"></span>2조</span>
+                    </div>
+                    <div class="bar-chart" id="ageChart"></div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>성별 비교</h3>
+                    <p class="chart-sub" id="genderChartSub">선택한 기간의 조별 평균 인지 실패 점수</p>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="key g1"></span>1조</span>
+                        <span class="legend-item"><span class="key g2"></span>2조</span>
+                    </div>
+                    <div class="bar-chart" id="genderChart"></div>
+                </div>
+            </div>
+
+            <div class="data-section">
+                <h2>모든 설문 응답</h2>
+                <div class="table-controls">
+                    <button id="deleteSelectedButton" class="delete-button">선택 항목 삭제</button>
+                </div>
+                <p id="loadingMessage" class="loading-message">데이터를 불러오는 중...</p>
+                <p id="dataErrorMessage" class="error-message hidden"></p>
+                <table class="data-table" id="surveyDataTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">응답 날짜</th>
+                            <th style="width: 6%;">조</th>
+                            <th style="width: 6%;">성별</th>
+                            <th style="width: 6%;">만 나이</th>
+                            <th style="width: 42%;">개별 점수</th>
+                            <th style="width: 8%;">총점</th>
+                            <th style="width: 12%; text-align: center;">
+                                <input type="checkbox" id="selectAllCheckbox" style="vertical-align: middle;"> 모두 선택
+                            </th>
+                            <th class="hidden-column">ID</th>
+                            <th class="hidden-column">사용자 ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+                <p id="noDataMessage" class="loading-message hidden">해당 기간의 데이터가 없습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        console.log("Admin Dashboard script started.");
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, where, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+        import { FIREBASE_CONFIG } from "./secrets.js";
+        const ADMIN_PASSWORD = "CHANGE_THIS_PASSWORD_GITHUB";
+
+        const firebaseConfig = FIREBASE_CONFIG;
+
+        // Firebase 설정이 제대로 되었는지 확인 (디버깅용)
+        console.log("Firebase config loaded:", firebaseConfig);
+        if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
+            console.error("Firebase config is empty or incomplete. Please update firebaseConfig with your actual Firebase project configuration.");
+            alert("Firebase 설정이 비어있거나 불완전합니다. Firebase 프로젝트 설정을 코드에 추가해야 합니다.");
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        console.log("Firebase initialized in admin script.");
+
+        const projectId = firebaseConfig.projectId || 'default-project-id';
+
+        const authSection = document.getElementById('authSection');
+        const adminPasswordInput = document.getElementById('adminPassword');
+        const loginButton = document.getElementById('loginButton');
+        const authMessage = document.getElementById('authMessage');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const dataErrorMessage = document.getElementById('dataErrorMessage');
+        const surveyDataTableBody = document.querySelector('#surveyDataTable tbody');
+        const avgScoreGroup1 = document.getElementById('avgScoreGroup1');
+        const avgScoreGroup2 = document.getElementById('avgScoreGroup2');
+        const noDataMessage = document.getElementById('noDataMessage');
+        const filterButton = document.getElementById('filterButton');
+        const deleteSelectedButton = document.getElementById('deleteSelectedButton');
+        const logoutButton = document.getElementById('logoutButton');
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox'); // "Select All" checkbox reference
+
+        console.log("Admin Dashboard DOM elements acquired.");
+
+        function populateHourSelect(selectId) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = ''; // 초기화
+            for (let i = 0; i < 24; i++) {
+                const option = document.createElement('option');
+                const hour = String(i).padStart(2, '0'); // 0 -> "00"
+                option.value = hour;
+                option.textContent = `${hour}`;
+                select.appendChild(option);
+            }
+        }
+
+        /* ─────────────────────────────────────────────────────────
+           연령대·성별 분포 차트
+           필터링된 응답을 조(1조/2조) × 연령대 / 조 × 성별로 집계해
+           막대그래프로 보여 준다.
+        ───────────────────────────────────────────────────────── */
+        const GROUPS = ['1조', '2조'];
+
+        const AGE_BUCKETS = [
+            { key: '10대 이하', test: (a) => a < 20, optional: true },
+            { key: '20대', test: (a) => a >= 20 && a < 30 },
+            { key: '30대', test: (a) => a >= 30 && a < 40 },
+            { key: '40대', test: (a) => a >= 40 && a < 50 },
+            { key: '50대', test: (a) => a >= 50 && a < 60 },
+            { key: '60대 이상', test: (a) => a >= 60 }
+        ];
+
+        const GENDER_BUCKETS = ['남성', '여성'];
+
+        let lastResponses = [];      // 현재 필터에 걸린 응답 목록
+        let chartMetric = 'avg';     // 'avg' = 평균 점수, 'count' = 응답 인원
+
+        // 응답 배열 → [{ key, cells: { '1조': {sum, n}, '2조': {sum, n} } }]
+        function aggregate(responses, buckets, matchFn) {
+            return buckets.map(bucket => {
+                const cells = {};
+                GROUPS.forEach(g => { cells[g] = { sum: 0, n: 0 }; });
+
+                responses.forEach(r => {
+                    if (!GROUPS.includes(r.group)) return;
+                    if (typeof r.totalScore !== 'number') return;
+                    if (!matchFn(r, bucket)) return;
+                    cells[r.group].sum += r.totalScore;
+                    cells[r.group].n += 1;
+                });
+
+                return { key: bucket.key ?? bucket, cells, optional: bucket.optional === true };
+            });
+        }
+
+        function drawBarChart(containerId, rows) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            // 데이터가 하나도 없는 선택 구간(예: 10대 이하)은 표시하지 않음
+            const visibleRows = rows.filter(row =>
+                !row.optional || GROUPS.some(g => row.cells[g].n > 0)
+            );
+
+            const valueOf = (cell) => {
+                if (chartMetric === 'count') return cell.n;
+                return cell.n > 0 ? cell.sum / cell.n : null;
+            };
+
+            const allValues = [];
+            visibleRows.forEach(row => GROUPS.forEach(g => {
+                const v = valueOf(row.cells[g]);
+                if (v !== null && v > 0) allValues.push(v);
+            }));
+
+            if (allValues.length === 0) {
+                container.innerHTML = '<p class="chart-empty">표시할 데이터가 없습니다.</p>';
+                return;
+            }
+
+            const maxValue = Math.max(...allValues);
+            const scaleMax = maxValue * 1.25; // 값 표시 공간 확보
+
+            visibleRows.forEach(row => {
+                const group = document.createElement('div');
+                group.className = 'bar-group';
+
+                const bars = document.createElement('div');
+                bars.className = 'bars';
+
+                GROUPS.forEach((g, idx) => {
+                    const cell = row.cells[g];
+                    const value = valueOf(cell);
+
+                    const wrap = document.createElement('div');
+                    wrap.className = 'bar-wrap';
+
+                    const valueLabel = document.createElement('span');
+                    valueLabel.className = 'bar-value';
+
+                    const bar = document.createElement('div');
+                    bar.className = `bar g${idx + 1}`;
+
+                    if (cell.n === 0) {
+                        valueLabel.textContent = '-';
+                        bar.classList.add('empty');
+                        bar.title = `${row.key} ${g}: 응답 없음`;
+                    } else {
+                        valueLabel.textContent = chartMetric === 'count'
+                            ? `${cell.n}`
+                            : value.toFixed(1);
+                        bar.style.height = `${Math.max((value / scaleMax) * 100, 1.5)}%`;
+                        bar.title = `${row.key} ${g} · 평균 ${(cell.sum / cell.n).toFixed(1)}점 · ${cell.n}명`;
+                    }
+
+                    wrap.appendChild(valueLabel);
+                    wrap.appendChild(bar);
+                    bars.appendChild(wrap);
+                });
+
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                const counts = GROUPS.map((g, i) => `${i + 1}조 ${row.cells[g].n}명`).join(' · ');
+                label.innerHTML = `${row.key}<small>${counts}</small>`;
+
+                group.appendChild(bars);
+                group.appendChild(label);
+                container.appendChild(group);
+            });
+        }
+
+        function renderCharts() {
+            const subText = chartMetric === 'count'
+                ? '선택한 기간의 조별 응답 인원'
+                : '선택한 기간의 조별 평균 인지 실패 점수(60점 만점)';
+            document.getElementById('ageChartSub').textContent = subText;
+            document.getElementById('genderChartSub').textContent = subText;
+
+            const ageRows = aggregate(
+                lastResponses,
+                AGE_BUCKETS,
+                (r, bucket) => typeof r.age === 'number' && bucket.test(r.age)
+            );
+
+            const genderRows = aggregate(
+                lastResponses,
+                GENDER_BUCKETS,
+                (r, bucket) => r.gender === bucket
+            );
+
+            drawBarChart('ageChart', ageRows);
+            drawBarChart('genderChart', genderRows);
+        }
+
+        document.getElementById('chartToggle').addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-metric]');
+            if (!button) return;
+            chartMetric = button.dataset.metric;
+            document.querySelectorAll('#chartToggle button').forEach(b => {
+                b.classList.toggle('active', b === button);
+            });
+            renderCharts();
+        });
+
+        let isAuthReady = false;
+
+        async function authenticateAndLoadData() {
+            try {
+                console.log("Attempting Firebase authentication for admin dashboard.");
+                if (Object.keys(firebaseConfig).length > 0 && firebaseConfig.projectId) {
+                    await signInAnonymously(auth);
+                    isAuthReady = true;
+                    console.log("Firebase authenticated for admin dashboard. Current User:", auth.currentUser);
+                    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                        console.log("Admin already logged in via session storage. Showing dashboard.");
+                        showDashboard();
+                    }
+                } else {
+                    console.error("Firebase config is missing or incomplete. Authentication skipped.");
+                    dataErrorMessage.textContent = "Firebase 설정이 없어 인증을 건너뛰었습니다. 콘솔을 확인하세요.";
+                    dataErrorMessage.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Firebase authentication error in admin:", error);
+                dataErrorMessage.textContent = `인증 오류: ${error.message}`;
+                dataErrorMessage.classList.remove('hidden');
+            }
+        }
+
+        async function fetchSurveyData() {
+            loadingMessage.classList.remove('hidden');
+            dataErrorMessage.classList.add('hidden');
+            noDataMessage.classList.add('hidden');
+            surveyDataTableBody.innerHTML = '';
+            avgScoreGroup1.textContent = 'N/A';
+            avgScoreGroup2.textContent = 'N/A';
+            selectAllCheckbox.checked = false; // Reset "Select All" checkbox on new data load
+
+            document.getElementById('avgAgeGroup1').textContent = 'N/A';
+            document.getElementById('avgAgeGroup2').textContent = 'N/A';
+
+            lastResponses = [];
+            renderCharts();
+
+            if (!isAuthReady) {
+                dataErrorMessage.textContent = "Firebase 인증 준비 중입니다. 잠시 후 다시 시도해주세요.";
+                dataErrorMessage.classList.remove('hidden');
+                loadingMessage.classList.add('hidden');
+                console.log("Firebase not ready, cannot fetch data.");
+                return;
+            }
+
+            const sDateVal = document.getElementById('startDate').value;
+            const sHourVal = document.getElementById('startHour').value;
+            const eDateVal = document.getElementById('endDate').value;
+            const eHourVal = document.getElementById('endHour').value;
+
+            try {
+                let q = collection(db, `artifacts/${projectId}/public/data/cfq_responses`);
+
+                // [수정] 날짜와 시간을 합쳐서 Date 객체 생성
+                if (sDateVal && eDateVal) {
+                    // 시작일시: 선택한 날짜 + 선택한 시간 + ":00" (분)
+                    const startTimestamp = new Date(`${sDateVal}T${sHourVal}:00`);
+
+                    // 종료일시: 선택한 날짜 + 선택한 시간 + ":59:59.999" (해당 시간의 끝까지 꽉 채움)
+                    // 예: 14시를 선택하면 14시 59분 59초까지 조회
+                    const endTimestamp = new Date(`${eDateVal}T${eHourVal}:59:59.999`);
+
+                    q = query(q, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp));
+                    console.log(`Filtering from ${startTimestamp.toLocaleString()} to ${endTimestamp.toLocaleString()}`);
+                }
+
+                const querySnapshot = await getDocs(q);
+                const allResponses = [];
+                let group1Scores = [];
+                let group2Scores = [];
+                let group1Ages = [];   // 추가
+                let group2Ages = [];   // 추가
+
+                if (querySnapshot.empty) {
+                    noDataMessage.classList.remove('hidden');
+                    loadingMessage.classList.add('hidden');
+                    document.getElementById('avgAgeGroup1').textContent = 'N/A'; // 추가
+                    document.getElementById('avgAgeGroup2').textContent = 'N/A'; // 추가
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    allResponses.push({ id: doc.id, ...data });
+
+                    if (data.group === '1조') {
+                        // ✅ totalScore와 age를 독립적으로 처리
+                        if (typeof data.totalScore === 'number') group1Scores.push(data.totalScore);
+                        if (typeof data.age === 'number') group1Ages.push(data.age);
+                    } else if (data.group === '2조') {
+                        if (typeof data.totalScore === 'number') group2Scores.push(data.totalScore);
+                        if (typeof data.age === 'number') group2Ages.push(data.age);
+                    }
+                });
+                console.log(`Fetched ${allResponses.length} responses.`);
+
+                // 연령대·성별 차트 갱신 (필터링된 응답 기준)
+                lastResponses = allResponses;
+                renderCharts();
+
+                // [FIX] timestamp 누락 문서가 있어도 정렬이 깨지지 않도록 방어
+                const toMillis = (r) =>
+                    r.timestamp && typeof r.timestamp.toDate === 'function'
+                        ? r.timestamp.toDate().getTime()
+                        : 0;
+                // [수정] 최신 응답이 위로 오도록 내림차순 정렬
+                allResponses.sort((a, b) => toMillis(b) - toMillis(a));
+
+                allResponses.forEach(response => {
+                    const row = surveyDataTableBody.insertRow();
+
+                    // 응답 날짜
+                    // [FIX] timestamp 누락 시에도 한 행 때문에 전체 렌더링이 멈추지 않도록 방어
+                    row.insertCell(0).textContent =
+                        response.timestamp && typeof response.timestamp.toDate === 'function'
+                            ? response.timestamp.toDate().toLocaleString('ko-KR')
+                            : '(시간 없음)';
+                    // 조
+                    row.insertCell(1).textContent = response.group;
+                    row.insertCell(2).textContent = response.gender ?? '(미입력)';
+                    row.insertCell(3).textContent = response.age ?? '(미입력)';
+
+                    // 개별 점수 (q1 ~ q15)
+                    const individualScores = [];
+                    for (let i = 1; i <= 15; i++) {
+                        // Ensure the key exists and is a number before pushing
+                        if (response.responses && typeof response.responses[`q${i}`] === 'number') {
+                            individualScores.push(response.responses[`q${i}`]);
+                        } else {
+                            individualScores.push('-'); // Or any placeholder for missing data
+                        }
+                    }
+                    row.insertCell(4).textContent = individualScores.join(', '); // Join with comma and space
+
+                    // 총점
+                    row.insertCell(5).textContent = response.totalScore;
+
+                    // Checkbox cell
+                    const checkboxCell = row.insertCell(6);
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'row-checkbox';
+                    checkbox.dataset.docId = response.id; // Store document ID in data attribute
+                    checkbox.addEventListener('change', updateSelectAllCheckbox); // Add event listener for individual checkboxes
+                    checkboxCell.appendChild(checkbox);
+                    // No need for checkboxCell.style.textAlign = 'right'; as the th is already centered.
+
+                    // ID 셀 (숨김)
+                    const idCell = row.insertCell(7);
+                    idCell.textContent = response.id.substring(0, 8) + '...';
+                    idCell.classList.add('hidden-column');
+
+                    // 사용자 ID 셀 (숨김)
+                    const userIdCell = row.insertCell(8);
+                    userIdCell.textContent = response.userId ? response.userId.substring(0, 8) + '...' : 'N/A';
+                    userIdCell.classList.add('hidden-column');
+                });
+
+                const calculateAverage = (arr) =>
+                    arr.length > 0 ? (arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(1) : 'N/A';
+
+                avgScoreGroup1.textContent = `${calculateAverage(group1Scores)} (${group1Scores.length}명)`;
+                avgScoreGroup2.textContent = `${calculateAverage(group2Scores)} (${group2Scores.length}명)`;
+
+                document.getElementById('avgAgeGroup1').textContent =
+                    group1Ages.length > 0 ? `${calculateAverage(group1Ages)}세` : 'N/A';
+                document.getElementById('avgAgeGroup2').textContent =
+                    group2Ages.length > 0 ? `${calculateAverage(group2Ages)}세` : 'N/A';
+
+                console.log(`Average scores calculated: Group 1=${avgScoreGroup1.textContent}, Group 2=${avgScoreGroup2.textContent}`);
+
+            } catch (e) {
+                dataErrorMessage.textContent = `데이터 로딩 중 오류 발생: ${e.message}`;
+                dataErrorMessage.classList.remove('hidden');
+                console.error("Error fetching documents from Firestore: ", e);
+            } finally {
+                loadingMessage.classList.add('hidden');
+            }
+        }
+
+        function showDashboard() {
+            authSection.style.display = 'none';
+            dashboardContent.classList.add('visible');
+            console.log("Dashboard visible.");
+
+            populateHourSelect('startHour');
+            populateHourSelect('endHour');
+
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('startDate').value = `${year}-${month}-01`; // 이달 1일
+            document.getElementById('startHour').value = "00";                  // 00시
+
+            document.getElementById('endDate').value = `${year}-${month}-${day}`; // 오늘
+            document.getElementById('endHour').value = "23";                      // 23시
+
+            fetchSurveyData();
+        }
+
+        function hideDashboard() {
+            authSection.style.display = 'block';
+            dashboardContent.classList.remove('visible');
+            adminPasswordInput.value = '';
+            authMessage.textContent = '';
+            sessionStorage.removeItem('adminLoggedIn');
+            console.log("Dashboard hidden, logged out.");
+        }
+
+        // Function to show a custom modal message
+        function showModal(message, onConfirm = null, onCancel = null) {
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = 'modal-overlay';
+            modalOverlay.innerHTML = `
+                <div class="modal-content">
+                    <p>${message}</p>
+                    <button id="modalConfirmButton">확인</button>
+                    ${onCancel ? '<button id="modalCancelButton" class="cancel-button">취소</button>' : ''}
+                </div>
+            `;
+            document.body.appendChild(modalOverlay);
+
+            document.getElementById('modalConfirmButton').addEventListener('click', () => {
+                modalOverlay.remove();
+                if (onConfirm) onConfirm();
+            });
+
+            if (onCancel) {
+                document.getElementById('modalCancelButton').addEventListener('click', () => {
+                    modalOverlay.remove();
+                    if (onCancel) onCancel();
+                });
+            }
+        }
+
+        loginButton.addEventListener('click', () => {
+            console.log("Login button clicked.");
+            const enteredPassword = adminPasswordInput.value;
+            console.log(`Entered password: "${enteredPassword}"`);
+            console.log(`Expected password: "${ADMIN_PASSWORD}"`);
+
+            if (enteredPassword === ADMIN_PASSWORD) {
+                authMessage.textContent = '';
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                showDashboard();
+            } else {
+                authMessage.textContent = '잘못된 비밀번호입니다.';
+                console.log("Incorrect password entered.");
+            }
+        });
+
+        logoutButton.addEventListener('click', () => {
+            console.log("Logout button clicked.");
+            // [FIX] Firebase signOut(익명 인증 해제)을 하지 않음.
+            // 익명 인증은 Firestore 읽기 권한 확보용일 뿐 보안 기능이 아니며,
+            // 여기서 signOut 하면 재로그인 시 인증이 끊겨 데이터 조회가 실패함.
+            // 로그아웃 = 대시보드 잠금(세션 플래그 제거 + 화면 숨김) 으로 충분.
+            hideDashboard();
+            console.log("Dashboard locked (logged out).");
+        });
+
+        // Event listener for "Select All" checkbox
+        selectAllCheckbox.addEventListener('change', (event) => {
+            console.log("Select All checkbox changed.");
+            const isChecked = event.target.checked;
+            document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        });
+
+        // Function to update "Select All" checkbox based on individual checkboxes
+        function updateSelectAllCheckbox() {
+            const allCheckboxes = document.querySelectorAll('.row-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            console.log(`Individual checkbox changed. Total: ${allCheckboxes.length}, Checked: ${checkedCheckboxes.length}`);
+
+            if (allCheckboxes.length > 0 && allCheckboxes.length === checkedCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.checked = false;
+            }
+        }
+
+        // Event listener for Delete Selected button
+        deleteSelectedButton.addEventListener('click', () => {
+            console.log("Delete Selected button clicked.");
+            const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            const docIdsToDelete = Array.from(selectedCheckboxes).map(cb => cb.dataset.docId);
+
+            if (docIdsToDelete.length === 0) {
+                showModal("삭제할 항목을 선택해주세요.");
+                return;
+            }
+
+            showModal(`${docIdsToDelete.length}개의 항목을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`, async () => {
+                loadingMessage.classList.remove('hidden');
+                dataErrorMessage.classList.add('hidden');
+                try {
+                    const deletePromises = docIdsToDelete.map(docId => {
+                        const docRef = doc(db, `artifacts/${projectId}/public/data/cfq_responses`, docId);
+                        console.log(`Attempting to delete document: ${docId}`);
+                        return deleteDoc(docRef);
+                    });
+                    await Promise.all(deletePromises);
+                    console.log("Selected documents deleted successfully.");
+                    showModal("선택된 항목이 성공적으로 삭제되었습니다.");
+                    // Re-fetch data to update the table
+                    // [FIX] fetchSurveyData()는 매개변수를 받지 않고 DOM에서 직접 값을 읽음.
+                    // 기존의 인자 전달은 아무 효과가 없어 제거.
+                    fetchSurveyData();
+                } catch (error) {
+                    console.error("Error deleting documents:", error);
+                    dataErrorMessage.textContent = `삭제 중 오류 발생: ${error.message}`;
+                    dataErrorMessage.classList.remove('hidden');
+                    showModal(`삭제 중 오류 발생: ${error.message}`);
+                } finally {
+                    loadingMessage.classList.add('hidden');
+                }
+            }, () => {
+                console.log("Deletion cancelled by user.");
+            });
+        });
+
+        authenticateAndLoadData();
+
+        filterButton.addEventListener('click', () => {
+            console.log("Filter button clicked.");
+            fetchSurveyData();
+        });
+    </script>
+</body>
+
+</html>
