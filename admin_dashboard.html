@@ -263,8 +263,8 @@
         /* ───────── 연령대·성별 분포 차트 ───────── */
         .chart-section {
             margin-top: 30px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 20px;
         }
 
@@ -322,32 +322,6 @@
         .key.g2,
         .bar.g2 {
             background-color: #10b981;
-        }
-
-        .chart-toggle {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .chart-toggle button {
-            background-color: #edf2f7;
-            color: #4a5568;
-            border: 1px solid #cbd5e0;
-            border-radius: 999px;
-            padding: 6px 14px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            min-height: 36px;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .chart-toggle button.active {
-            background-color: #4c51bf;
-            border-color: #4c51bf;
-            color: #ffffff;
-            font-weight: 600;
         }
 
         .bar-chart {
@@ -430,12 +404,6 @@
             color: #718096;
             font-size: 0.9rem;
             padding: 40px 0;
-        }
-
-        @media (max-width: 768px) {
-            .chart-section {
-                grid-template-columns: 1fr;
-            }
         }
 
         /* Style to hide columns */
@@ -674,20 +642,13 @@
         <div class="dashboard-content" id="dashboardContent">
             <div class="filter-section">
                 <div style="display:flex; align-items:center; gap:5px;">
-                    <label>시작:</label>
-                    <input type="date" id="startDate">
-                    <select id="startHour"
-                        style="padding: 8px; border-radius: 5px; border: 1px solid #cbd5e0;"></select>
+                    <label>조회 일시:</label>
+                    <input type="date" id="filterDate">
+                    <select id="filterHour"
+                        style="padding: 8px; border-radius: 5px; border: 1px solid #cbd5e0; min-height: 44px;"></select>
                     <span>시</span>
                 </div>
-
-                <div style="display:flex; align-items:center; gap:5px; margin-left: 10px;">
-                    <label>종료:</label>
-                    <input type="date" id="endDate">
-                    <select id="endHour" style="padding: 8px; border-radius: 5px; border: 1px solid #cbd5e0;"></select>
-                    <span>시</span>
-                </div>
-                <button id="filterButton" style="margin-left: 10px;">필터링</button>
+                <button id="filterButton" style="margin-left: 10px;">조회</button>
                 <button id="logoutButton" class="logout-button">로그아웃</button>
             </div>
 
@@ -707,15 +668,10 @@
                 </div>
             </div>
 
-            <div class="chart-toggle" id="chartToggle">
-                <button type="button" data-metric="avg" class="active">평균 점수</button>
-                <button type="button" data-metric="count">응답 인원</button>
-            </div>
-
             <div class="chart-section">
                 <div class="chart-card">
-                    <h3>연령대별 비교</h3>
-                    <p class="chart-sub" id="ageChartSub">선택한 기간의 조별 평균 인지 실패 점수</p>
+                    <h3>연령대별 평균 점수</h3>
+                    <p class="chart-sub">선택한 일시의 조별 평균 인지 실패 점수(60점 만점)</p>
                     <div class="chart-legend">
                         <span class="legend-item"><span class="key g1"></span>1조</span>
                         <span class="legend-item"><span class="key g2"></span>2조</span>
@@ -724,8 +680,8 @@
                 </div>
 
                 <div class="chart-card">
-                    <h3>성별 비교</h3>
-                    <p class="chart-sub" id="genderChartSub">선택한 기간의 조별 평균 인지 실패 점수</p>
+                    <h3>성별 평균 점수</h3>
+                    <p class="chart-sub">선택한 일시의 조별 평균 인지 실패 점수(60점 만점)</p>
                     <div class="chart-legend">
                         <span class="legend-item"><span class="key g1"></span>1조</span>
                         <span class="legend-item"><span class="key g2"></span>2조</span>
@@ -761,7 +717,7 @@
                         <!-- Data will be loaded here -->
                     </tbody>
                 </table>
-                <p id="noDataMessage" class="loading-message hidden">해당 기간의 데이터가 없습니다.</p>
+                <p id="noDataMessage" class="loading-message hidden">선택한 일시에 저장된 응답이 없습니다.</p>
             </div>
         </div>
     </div>
@@ -840,8 +796,7 @@
 
         const GENDER_BUCKETS = ['남성', '여성'];
 
-        let lastResponses = [];      // 현재 필터에 걸린 응답 목록
-        let chartMetric = 'avg';     // 'avg' = 평균 점수, 'count' = 응답 인원
+        let lastResponses = [];      // 현재 조회 조건에 걸린 응답 목록
 
         // 응답 배열 → [{ key, cells: { '1조': {sum, n}, '2조': {sum, n} } }]
         function aggregate(responses, buckets, matchFn) {
@@ -870,10 +825,8 @@
                 !row.optional || GROUPS.some(g => row.cells[g].n > 0)
             );
 
-            const valueOf = (cell) => {
-                if (chartMetric === 'count') return cell.n;
-                return cell.n > 0 ? cell.sum / cell.n : null;
-            };
+            // 평균 점수만 표시한다 (인원은 그래프에 나타내지 않음)
+            const valueOf = (cell) => (cell.n > 0 ? cell.sum / cell.n : null);
 
             const allValues = [];
             visibleRows.forEach(row => GROUPS.forEach(g => {
@@ -914,11 +867,9 @@
                         bar.classList.add('empty');
                         bar.title = `${row.key} ${g}: 응답 없음`;
                     } else {
-                        valueLabel.textContent = chartMetric === 'count'
-                            ? `${cell.n}`
-                            : value.toFixed(1);
+                        valueLabel.textContent = value.toFixed(1);
                         bar.style.height = `${Math.max((value / scaleMax) * 100, 1.5)}%`;
-                        bar.title = `${row.key} ${g} · 평균 ${(cell.sum / cell.n).toFixed(1)}점 · ${cell.n}명`;
+                        bar.title = `${row.key} ${g} · 평균 ${value.toFixed(1)}점`;
                     }
 
                     wrap.appendChild(valueLabel);
@@ -928,8 +879,7 @@
 
                 const label = document.createElement('div');
                 label.className = 'bar-label';
-                const counts = GROUPS.map((g, i) => `${i + 1}조 ${row.cells[g].n}명`).join(' · ');
-                label.innerHTML = `${row.key}<small>${counts}</small>`;
+                label.textContent = row.key;
 
                 group.appendChild(bars);
                 group.appendChild(label);
@@ -938,12 +888,6 @@
         }
 
         function renderCharts() {
-            const subText = chartMetric === 'count'
-                ? '선택한 기간의 조별 응답 인원'
-                : '선택한 기간의 조별 평균 인지 실패 점수(60점 만점)';
-            document.getElementById('ageChartSub').textContent = subText;
-            document.getElementById('genderChartSub').textContent = subText;
-
             const ageRows = aggregate(
                 lastResponses,
                 AGE_BUCKETS,
@@ -959,16 +903,6 @@
             drawBarChart('ageChart', ageRows);
             drawBarChart('genderChart', genderRows);
         }
-
-        document.getElementById('chartToggle').addEventListener('click', (event) => {
-            const button = event.target.closest('button[data-metric]');
-            if (!button) return;
-            chartMetric = button.dataset.metric;
-            document.querySelectorAll('#chartToggle button').forEach(b => {
-                b.classList.toggle('active', b === button);
-            });
-            renderCharts();
-        });
 
         let isAuthReady = false;
 
@@ -1018,26 +952,25 @@
                 return;
             }
 
-            const sDateVal = document.getElementById('startDate').value;
-            const sHourVal = document.getElementById('startHour').value;
-            const eDateVal = document.getElementById('endDate').value;
-            const eHourVal = document.getElementById('endHour').value;
+            const dateVal = document.getElementById('filterDate').value;
+            const hourVal = document.getElementById('filterHour').value;
+
+            if (!dateVal) {
+                dataErrorMessage.textContent = "조회할 날짜를 선택해 주세요.";
+                dataErrorMessage.classList.remove('hidden');
+                loadingMessage.classList.add('hidden');
+                return;
+            }
 
             try {
                 let q = collection(db, `artifacts/${projectId}/public/data/cfq_responses`);
 
-                // [수정] 날짜와 시간을 합쳐서 Date 객체 생성
-                if (sDateVal && eDateVal) {
-                    // 시작일시: 선택한 날짜 + 선택한 시간 + ":00" (분)
-                    const startTimestamp = new Date(`${sDateVal}T${sHourVal}:00`);
+                // 선택한 날짜의 선택한 시각 한 시간(00분 00초 ~ 59분 59초)만 조회
+                const startTimestamp = new Date(`${dateVal}T${hourVal}:00:00`);
+                const endTimestamp = new Date(`${dateVal}T${hourVal}:59:59.999`);
 
-                    // 종료일시: 선택한 날짜 + 선택한 시간 + ":59:59.999" (해당 시간의 끝까지 꽉 채움)
-                    // 예: 14시를 선택하면 14시 59분 59초까지 조회
-                    const endTimestamp = new Date(`${eDateVal}T${eHourVal}:59:59.999`);
-
-                    q = query(q, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp));
-                    console.log(`Filtering from ${startTimestamp.toLocaleString()} to ${endTimestamp.toLocaleString()}`);
-                }
+                q = query(q, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp));
+                console.log(`조회 구간: ${startTimestamp.toLocaleString()} ~ ${endTimestamp.toLocaleString()}`);
 
                 const querySnapshot = await getDocs(q);
                 const allResponses = [];
@@ -1134,8 +1067,8 @@
                 const calculateAverage = (arr) =>
                     arr.length > 0 ? (arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(1) : 'N/A';
 
-                avgScoreGroup1.textContent = `${calculateAverage(group1Scores)} (${group1Scores.length}명)`;
-                avgScoreGroup2.textContent = `${calculateAverage(group2Scores)} (${group2Scores.length}명)`;
+                avgScoreGroup1.textContent = calculateAverage(group1Scores);
+                avgScoreGroup2.textContent = calculateAverage(group2Scores);
 
                 document.getElementById('avgAgeGroup1').textContent =
                     group1Ages.length > 0 ? `${calculateAverage(group1Ages)}세` : 'N/A';
@@ -1158,18 +1091,15 @@
             dashboardContent.classList.add('visible');
             console.log("Dashboard visible.");
 
-            populateHourSelect('startHour');
-            populateHourSelect('endHour');
+            populateHourSelect('filterHour');
 
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const day = String(today.getDate()).padStart(2, '0');
-            document.getElementById('startDate').value = `${year}-${month}-01`; // 이달 1일
-            document.getElementById('startHour').value = "00";                  // 00시
 
-            document.getElementById('endDate').value = `${year}-${month}-${day}`; // 오늘
-            document.getElementById('endHour').value = "23";                      // 23시
+            document.getElementById('filterDate').value = `${year}-${month}-${day}`;            // 오늘
+            document.getElementById('filterHour').value = String(today.getHours()).padStart(2, '0'); // 현재 시각
 
             fetchSurveyData();
         }
