@@ -376,6 +376,20 @@
             border-radius: 4px 4px 0 0;
             min-height: 2px;
             transition: height 0.4s ease;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        /* 막대 안쪽 아래에 표시하는 응답 인원 */
+        .bar-count {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+            padding-bottom: 4px;
+            white-space: nowrap;
         }
 
         .bar.empty {
@@ -870,8 +884,14 @@
                         bar.title = `${row.key} ${g}: 응답 없음`;
                     } else {
                         valueLabel.textContent = value.toFixed(1);
-                        bar.style.height = `${Math.max((value / scaleMax) * 100, 1.5)}%`;
-                        bar.title = `${row.key} ${g} · 평균 ${value.toFixed(1)}점`;
+                        // 막대 길이가 짧아도 인원 숫자가 들어가도록 최소 높이를 준다.
+                        bar.style.height = `max(${(value / scaleMax) * 100}%, 22px)`;
+                        bar.title = `${row.key} ${g} · 평균 ${value.toFixed(1)}점 · ${cell.n}명`;
+
+                        const count = document.createElement('span');
+                        count.className = 'bar-count';
+                        count.textContent = cell.n;
+                        bar.appendChild(count);
                     }
 
                     wrap.appendChild(valueLabel);
