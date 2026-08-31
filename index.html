@@ -713,6 +713,35 @@
             word-break: keep-all;
         }
 
+        .done-card>div {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* 이미 응답을 마친 뒤에도 이 기기의 기록을 지우고 다시 응답할 수 있는 길 */
+        .reset-button {
+            margin-top: 12px;
+            padding: 9px 14px;
+            border: 1px solid #C5D8E9;
+            border-radius: 999px;
+            background-color: var(--surface);
+            font-family: var(--font);
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--brand-strong);
+            cursor: pointer;
+        }
+
+        .reset-button:active {
+            background-color: var(--brand-tint);
+        }
+
+        .reset-hint {
+            margin-top: 8px !important;
+            font-size: 0.78rem !important;
+            color: var(--ink-faint) !important;
+        }
+
         .done-meta {
             margin-top: 6px !important;
             font-size: 0.84rem !important;
@@ -750,6 +779,22 @@
             .admin-link {
                 margin: 10px 0 20px;
             }
+        }
+
+        /* 스마트폰에서는 관리자 대시보드로 넘어갈 수 없게 막는다 */
+        .admin-link.is-disabled {
+            pointer-events: none;
+            opacity: 0.45;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .admin-link-note {
+            display: block;
+            text-align: center;
+            margin: 0 0 8px;
+            font-size: 0.76rem;
+            color: var(--ink-faint);
         }
 
         @media (max-width: 340px) {
@@ -791,6 +836,8 @@
                 <h2>이미 응답을 마치셨습니다</h2>
                 <p>설문 내용은 아래에서 그대로 보실 수 있고, 다시 제출만 되지 않습니다.</p>
                 <p class="done-meta"><span id="doneAt">-</span> · 인지 실패 점수 <span id="doneScore">-</span></p>
+                <button type="button" class="reset-button" id="resetButton">그럼에도 불구하고 다시 설문하기</button>
+                <p class="reset-hint">이 기기에 저장된 응답 기록을 지우고 처음부터 다시 응답합니다.</p>
             </div>
         </section>
 
@@ -1267,7 +1314,8 @@
             </div>
         </form>
 
-        <a class="admin-link" href="admin_dashboard.html">관리자 대시보드</a>
+        <a class="admin-link" id="adminLink" href="admin_dashboard.html">관리자 대시보드</a>
+        <span class="admin-link-note hidden" id="adminLinkNote">관리자 대시보드는 PC에서만 열 수 있습니다.</span>
     </main>
 
     <div class="submitbar">
@@ -1619,6 +1667,79 @@
             });
         });
 
+        /* ───────── 스마트폰에서는 관리자 대시보드를 막는다 ─────────
+           손가락으로 쓰는 좁은 화면에서는 링크를 흐리게 두고 클릭도 받지 않는다.
+           PC(넓은 화면·마우스)에서는 그대로 눌러서 들어갈 수 있다. */
+        var adminLink = document.getElementById('adminLink');
+        var adminLinkNote = document.getElementById('adminLinkNote');
+        var adminHref = adminLink ? adminLink.getAttribute('href') : '';
+
+        function isPhone() {
+            var ua = navigator.userAgent || '';
+            if (/Android|iPhone|iPod|Windows Phone|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true;
+            var coarse = window.matchMedia('(pointer: coarse)').matches;
+            return coarse && window.innerWidth < 700;
+        }
+
+        function syncAdminLink() {
+            if (!adminLink) return;
+
+            if (isPhone()) {
+                adminLink.classList.add('is-disabled');
+                adminLink.setAttribute('aria-disabled', 'true');
+                adminLink.setAttribute('tabindex', '-1');
+                adminLink.removeAttribute('href');   // 새 탭으로 여는 길까지 막는다
+                adminLinkNote.classList.remove('hidden');
+            } else {
+                adminLink.classList.remove('is-disabled');
+                adminLink.removeAttribute('aria-disabled');
+                adminLink.removeAttribute('tabindex');
+                if (adminHref) adminLink.setAttribute('href', adminHref);
+                adminLinkNote.classList.add('hidden');
+            }
+        }
+
+        // 스타일이 어긋나더라도 이동만은 막도록 클릭도 한 번 더 걸러 낸다.
+        if (adminLink) {
+            adminLink.addEventListener('click', function (event) {
+                if (!isPhone()) return;
+                event.preventDefault();
+                showToast('관리자 대시보드는 PC에서만 열 수 있습니다.');
+            });
+        }
+
+        /* ───────── 이 기기의 응답 기록 지우기 ─────────
+           '그럼에도 불구하고 다시 설문하기'를 누르면 브라우저에 남은 기록을 지우고
+           익명 계정도 끊어, 처음 상태에서 다시 응답할 수 있게 한다.
+           이미 서버에 저장된 결과는 지워지지 않는다. */
+        var resetButton = document.getElementById('resetButton');
+
+        if (resetButton) {
+            resetButton.addEventListener('click', function () {
+                var ok = window.confirm(
+                    '이 기기에 저장된 응답 기록을 지우고 처음부터 다시 응답합니다.\n' +
+                    '이미 저장된 결과는 서버에 그대로 남습니다.\n\n계속하시겠습니까?'
+                );
+                if (!ok) return;
+
+                resetButton.disabled = true;
+                resetButton.textContent = '기록을 지우는 중';
+
+                clearLock();
+
+                var clearing = typeof window.CFQ.reset === 'function'
+                    ? window.CFQ.reset()
+                    : Promise.resolve();
+
+                Promise.resolve(clearing).catch(function (error) {
+                    console.warn('익명 계정을 끊지 못했습니다.', error);
+                }).then(function () {
+                    // 주소에 붙은 ?reset=1 같은 값은 떼고 깨끗한 주소로 다시 연다.
+                    window.location.replace(window.location.href.split('?')[0].split('#')[0]);
+                });
+            });
+        }
+
         /* ───────── 헤더 높이를 실제 값으로 맞춤 ───────── */
         var appbar = document.querySelector('.appbar');
 
@@ -1626,8 +1747,12 @@
             document.documentElement.style.setProperty('--header-h', appbar.offsetHeight + 'px');
         }
 
-        window.addEventListener('resize', syncHeaderHeight);
+        window.addEventListener('resize', function () {
+            syncHeaderHeight();
+            syncAdminLink();
+        });
         syncHeaderHeight();
+        syncAdminLink();
         updateProgress();
 
         applyLock(readLock());
@@ -1728,6 +1853,14 @@
                         userId: currentUserId,
                         timestamp: new Date()
                     }, data));
+                };
+
+                // '다시 설문하기'를 눌렀을 때 이 기기의 익명 계정을 끊는다.
+                // 그래야 다음 응답이 새 사용자로 저장되고, 기존 응답 때문에 다시 잠기지 않는다.
+                window.CFQ.reset = async function () {
+                    if (auth.currentUser) {
+                        await authModule.signOut(auth);
+                    }
                 };
 
                 console.log('Firebase 연결 완료. 응답 저장 경로:', path);
