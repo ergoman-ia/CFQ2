@@ -1183,9 +1183,10 @@
             // [FIX] Firebase signOut(익명 인증 해제)을 하지 않음.
             // 익명 인증은 Firestore 읽기 권한 확보용일 뿐 보안 기능이 아니며,
             // 여기서 signOut 하면 재로그인 시 인증이 끊겨 데이터 조회가 실패함.
-            // 로그아웃 = 대시보드 잠금(세션 플래그 제거 + 화면 숨김) 으로 충분.
-            hideDashboard();
-            console.log("Dashboard locked (logged out).");
+            // 로그아웃 = 세션 플래그 제거 + 설문 화면으로 이동.
+            sessionStorage.removeItem('adminLoggedIn');
+            // 뒤로 가기로 대시보드가 다시 열리지 않도록 기록을 남기지 않고 이동한다.
+            window.location.replace('index.html');
         });
 
         // Event listener for "Select All" checkbox
