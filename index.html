@@ -674,79 +674,38 @@
             cursor: pointer;
         }
 
-        .done-card {
+        /* 이미 응답을 마친 뒤: 맨 위에 한 줄로만 조용히 알린다 */
+        .done-bar {
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            text-align: left;
-            padding: 16px;
-            background-color: var(--brand-tint);
-            border-color: #C5D8E9;
-        }
-
-        .done-mark {
-            flex: none;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background-color: var(--brand);
-            color: #FFFFFF;
-            font-size: 1.15rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .done-card h2 {
-            margin: 0 0 4px;
-            font-size: 1.02rem;
-            font-weight: 800;
-            letter-spacing: -0.4px;
-            color: var(--brand-strong);
-        }
-
-        .done-card p {
-            margin: 0;
-            font-size: 0.88rem;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 4px 12px;
+            margin: 0 0 12px;
+            padding: 0 2px;
+            font-size: 0.85rem;
             color: var(--ink-soft);
-            word-break: keep-all;
         }
 
-        .done-card>div {
-            flex: 1;
-            min-width: 0;
+        .done-bar p {
+            margin: 0;
         }
 
-        /* 이미 응답을 마친 뒤에도 이 기기의 기록을 지우고 다시 응답할 수 있는 길 */
-        .reset-button {
-            margin-top: 12px;
-            padding: 9px 14px;
-            border: 1px solid #C5D8E9;
-            border-radius: 999px;
-            background-color: var(--surface);
-            font-family: var(--font);
-            font-size: 0.84rem;
-            font-weight: 700;
+        .done-bar b {
             color: var(--brand-strong);
+            font-weight: 700;
+        }
+
+        .reset-button {
+            padding: 0;
+            border: 0;
+            background: none;
+            font-family: var(--font);
+            font-size: 0.8rem;
+            color: var(--ink-faint);
+            text-decoration: underline;
+            text-underline-offset: 3px;
             cursor: pointer;
-        }
-
-        .reset-button:active {
-            background-color: var(--brand-tint);
-        }
-
-        .reset-hint {
-            margin-top: 8px !important;
-            font-size: 0.78rem !important;
-            color: var(--ink-faint) !important;
-        }
-
-        .done-meta {
-            margin-top: 6px !important;
-            font-size: 0.84rem !important;
-            color: var(--brand-strong) !important;
-            font-weight: 600;
         }
 
         /* 제출을 마친 뒤: 문항은 그대로 읽히되 다시 고를 수는 없다 */
@@ -781,20 +740,9 @@
             }
         }
 
-        /* 스마트폰에서는 관리자 대시보드로 넘어갈 수 없게 막는다 */
-        .admin-link.is-disabled {
-            pointer-events: none;
-            opacity: 0.45;
-            cursor: default;
-            text-decoration: none;
-        }
-
-        .admin-link-note {
-            display: block;
-            text-align: center;
-            margin: 0 0 8px;
-            font-size: 0.76rem;
-            color: var(--ink-faint);
+        /* 스마트폰에서는 관리자 대시보드 링크를 아예 보여 주지 않는다 */
+        .admin-link.is-hidden {
+            display: none;
         }
 
         @media (max-width: 340px) {
@@ -830,15 +778,9 @@
     </header>
 
     <main>
-        <section class="card done-card hidden" id="doneCard">
-            <div class="done-mark" aria-hidden="true">&#10003;</div>
-            <div>
-                <h2>이미 응답을 마치셨습니다</h2>
-                <p>설문 내용은 아래에서 그대로 보실 수 있고, 다시 제출만 되지 않습니다.</p>
-                <p class="done-meta"><span id="doneAt">-</span> · 인지 실패 점수 <span id="doneScore">-</span></p>
-                <button type="button" class="reset-button" id="resetButton">그럼에도 불구하고 다시 설문하기</button>
-                <p class="reset-hint">이 기기에 저장된 응답 기록을 지우고 처음부터 다시 응답합니다.</p>
-            </div>
+        <section class="done-bar hidden" id="doneCard">
+            <p>응답 완료 · <b id="doneScore">-</b> · <span id="doneAt">-</span></p>
+            <button type="button" class="reset-button" id="resetButton">그럼에도 불구하고 다시 설문하기</button>
         </section>
 
         <form id="cfqForm" novalidate>
@@ -1315,7 +1257,6 @@
         </form>
 
         <a class="admin-link" id="adminLink" href="admin_dashboard.html">관리자 대시보드</a>
-        <span class="admin-link-note hidden" id="adminLinkNote">관리자 대시보드는 PC에서만 열 수 있습니다.</span>
     </main>
 
     <div class="submitbar">
@@ -1488,8 +1429,8 @@
             document.body.style.paddingBottom = '24px';
 
             document.getElementById('doneAt').textContent = info.at
-                ? new Date(info.at).toLocaleString('ko-KR')
-                : '응답 완료';
+                ? new Date(info.at).toLocaleDateString('ko-KR')
+                : '-';
             document.getElementById('doneScore').textContent =
                 typeof info.score === 'number' ? info.score + '점' : '-';
             document.getElementById('doneCard').classList.remove('hidden');
@@ -1667,11 +1608,10 @@
             });
         });
 
-        /* ───────── 스마트폰에서는 관리자 대시보드를 막는다 ─────────
-           손가락으로 쓰는 좁은 화면에서는 링크를 흐리게 두고 클릭도 받지 않는다.
-           PC(넓은 화면·마우스)에서는 그대로 눌러서 들어갈 수 있다. */
+        /* ───────── 스마트폰에서는 관리자 대시보드를 숨긴다 ─────────
+           링크 자체를 보여 주지 않고 href도 떼어 둔다.
+           PC(넓은 화면·마우스)에서만 다시 나타난다. */
         var adminLink = document.getElementById('adminLink');
-        var adminLinkNote = document.getElementById('adminLinkNote');
         var adminHref = adminLink ? adminLink.getAttribute('href') : '';
 
         function isPhone() {
@@ -1685,27 +1625,12 @@
             if (!adminLink) return;
 
             if (isPhone()) {
-                adminLink.classList.add('is-disabled');
-                adminLink.setAttribute('aria-disabled', 'true');
-                adminLink.setAttribute('tabindex', '-1');
-                adminLink.removeAttribute('href');   // 새 탭으로 여는 길까지 막는다
-                adminLinkNote.classList.remove('hidden');
+                adminLink.classList.add('is-hidden');
+                adminLink.removeAttribute('href');
             } else {
-                adminLink.classList.remove('is-disabled');
-                adminLink.removeAttribute('aria-disabled');
-                adminLink.removeAttribute('tabindex');
+                adminLink.classList.remove('is-hidden');
                 if (adminHref) adminLink.setAttribute('href', adminHref);
-                adminLinkNote.classList.add('hidden');
             }
-        }
-
-        // 스타일이 어긋나더라도 이동만은 막도록 클릭도 한 번 더 걸러 낸다.
-        if (adminLink) {
-            adminLink.addEventListener('click', function (event) {
-                if (!isPhone()) return;
-                event.preventDefault();
-                showToast('관리자 대시보드는 PC에서만 열 수 있습니다.');
-            });
         }
 
         /* ───────── 이 기기의 응답 기록 지우기 ─────────
