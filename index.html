@@ -22,6 +22,7 @@
             --line: #DAE1E9;
             --safe: #2E8B6F;
             --alert: #C0453B;
+            --done: #B4560B;
             --radius: 16px;
             --header-h: 72px;
             --font: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard',
@@ -677,14 +678,15 @@
         /* 이미 응답을 마친 뒤: 맨 위에 한 줄로만 조용히 알린다 */
         .done-bar {
             display: flex;
-            flex-wrap: wrap;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 4px 12px;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
             margin: 0 0 12px;
             padding: 0 2px;
+            text-align: center;
             font-size: 0.85rem;
-            color: var(--ink-soft);
+            font-weight: 600;
+            color: var(--done);
         }
 
         .done-bar p {
@@ -692,8 +694,8 @@
         }
 
         .done-bar b {
-            color: var(--brand-strong);
-            font-weight: 700;
+            color: var(--done);
+            font-weight: 800;
         }
 
         .reset-button {
