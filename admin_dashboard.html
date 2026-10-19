@@ -674,13 +674,15 @@
                     <p>1조 평균 인지 실패 점수(최악 60점)</p>
                     <span id="avgScoreGroup1">N/A</span>
                     <p style="margin-top:10px;">평균 연령 : 
-                    <span id="avgAgeGroup1" style="font-size:1.3rem;">N/A</span></p>
+                    <span id="avgAgeGroup1" style="font-size:1.3rem;">N/A</span>
+                    <span id="countGroup1" style="font-size:1.1rem; font-weight:600;"></span></p>
                 </div>
                 <div class="score-group group-2">
                     <p>2조 평균 인지 실패 점수(최악 60점)</p>
                     <span id="avgScoreGroup2">N/A</span>
                     <p style="margin-top:10px;">평균 연령 :
-                    <span id="avgAgeGroup2" style="font-size:1.3rem;">N/A</span></p>
+                    <span id="avgAgeGroup2" style="font-size:1.3rem;">N/A</span>
+                    <span id="countGroup2" style="font-size:1.1rem; font-weight:600;"></span></p>
                 </div>
             </div>
 
@@ -962,6 +964,8 @@
 
             document.getElementById('avgAgeGroup1').textContent = 'N/A';
             document.getElementById('avgAgeGroup2').textContent = 'N/A';
+            document.getElementById('countGroup1').textContent = '';
+            document.getElementById('countGroup2').textContent = '';
 
             lastResponses = [];
             renderCharts();
@@ -1007,6 +1011,8 @@
                     loadingMessage.classList.add('hidden');
                     document.getElementById('avgAgeGroup1').textContent = 'N/A'; // 추가
                     document.getElementById('avgAgeGroup2').textContent = 'N/A'; // 추가
+                    document.getElementById('countGroup1').textContent = '(0명)';
+                    document.getElementById('countGroup2').textContent = '(0명)';
                     return;
                 }
 
@@ -1097,6 +1103,11 @@
                     group1Ages.length > 0 ? `${calculateAverage(group1Ages)}세` : 'N/A';
                 document.getElementById('avgAgeGroup2').textContent =
                     group2Ages.length > 0 ? `${calculateAverage(group2Ages)}세` : 'N/A';
+
+                // 조별 응답 인원 (조회 조건에 걸린 응답 수)
+                const countOf = (g) => allResponses.filter(r => r.group === g).length;
+                document.getElementById('countGroup1').textContent = `(${countOf('1조')}명)`;
+                document.getElementById('countGroup2').textContent = `(${countOf('2조')}명)`;
 
                 console.log(`Average scores calculated: Group 1=${avgScoreGroup1.textContent}, Group 2=${avgScoreGroup2.textContent}`);
 
